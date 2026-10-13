@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Quiz</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        /* background: #f7f7f7; */
+        background-color: white;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+      }
+      .quiz-container {
+        background: white;
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .question {
+        margin-bottom: 15px;
+      }
+      .options input {
+        margin-right: 8px;
+      }
+      #score {
+        font-weight: bold;
+        font-size: 18px;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .buttons {
+        text-align: center;
+        margin-top: 20px;
+      }
+      button {
+        padding: 10px 15px;
+        margin: 0 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1>CodKid</h1>
+      <div class="menu">
+        <a href="CodeKid.html" onclick="showDashboard()">Dashboard</a>
+        <a href="CodeKid.html" onclick="showLessons()">My Lessons</a>
+        <a href="quize.html" onclick="showQuiz()">Quiz</a>
+        <a href="idea_genretor.html" onclick="showidea()">Ideas</a>
+        <a href="about.html" onclick="showprofile()">About Authority</a>
+        <a href="Profile.html" onclick="showprofile()">Profile</a>
+        <a href="Codkid_Starter.html" onclick="showprofile()">Log in/Sign in</a>
+      </div>
+      <!-- Profile Picture -->
+      <div class="profile-pic">
+        <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+      </div>
+    </nav>
+    <h1>🧠 Python Quiz</h1>
+    <div class="quiz-container" id="quizForm">
+      <div class="question">
+        <p>1. What is the correct file extension for Python files?</p>
+        <div class="options">
+          <input type="radio" name="q1" value="a" /> .pt <br />
+          <input type="radio" name="q1" value="b" /> .py <br />
+          <input type="radio" name="q1" value="c" /> .pyt <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>2. What keyword is used to define a function in Python?</p>
+        <div class="options">
+          <input type="radio" name="q2" value="a" /> func <br />
+          <input type="radio" name="q2" value="b" /> function <br />
+          <input type="radio" name="q2" value="c" /> def <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>3. How do you insert comments in Python code?</p>
+        <div class="options">
+          <input type="radio" name="q3" value="a" /> //comment <br />
+          <input type="radio" name="q3" value="b" /> #comment <br />
+          <input type="radio" name="q3" value="c" /> /*comment*/ <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>4. Which of the following is a Python data type?</p>
+        <div class="options">
+          <input type="radio" name="q4" value="a" /> String <br />
+          <input type="radio" name="q4" value="b" /> Integer <br />
+          <input type="radio" name="q4" value="c" /> Both <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>5. What is the output of: <code>print(type(5.0))</code>?</p>
+        <div class="options">
+          <input type="radio" name="q5" value="a" /> &lt;class 'int'&gt; <br />
+          <input type="radio" name="q5" value="b" /> &lt;class 'float'&gt;
+          <br />
+          <input type="radio" name="q5" value="c" /> &lt;class 'str'&gt; <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>6. What does the <code>len()</code> function do?</p>
+        <div class="options">
+          <input type="radio" name="q6" value="a" /> Finds the max value <br />
+          <input type="radio" name="q6" value="b" /> Finds the length <br />
+          <input type="radio" name="q6" value="c" /> Converts to integer <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>7. How do you start a loop that runs 5 times?</p>
+        <div class="options">
+          <input type="radio" name="q7" value="a" /> for i = 1 to 5 <br />
+          <input type="radio" name="q7" value="b" /> for i in range(5) <br />
+          <input type="radio" name="q7" value="c" /> loop 5 times <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>8. What is the symbol for multiplication in Python?</p>
+        <div class="options">
+          <input type="radio" name="q8" value="a" /> x <br />
+          <input type="radio" name="q8" value="b" /> * <br />
+          <input type="radio" name="q8" value="c" /> % <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>9. Which keyword is used to handle exceptions?</p>
+        <div class="options">
+          <input type="radio" name="q9" value="a" /> catch <br />
+          <input type="radio" name="q9" value="b" /> try <br />
+          <input type="radio" name="q9" value="c" /> throw <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>10. What does <code>input()</code> do in Python?</p>
+        <div class="options">
+          <input type="radio" name="q10" value="a" /> Outputs data <br />
+          <input type="radio" name="q10" value="b" /> Stops the code <br />
+          <input type="radio" name="q10" value="c" /> Takes user input <br />
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button onclick="submitQuiz()">Submit</button>
+        <button onclick="resetQuiz()">Reset</button>
+      </div>
+
+      <p id="score"></p>
+    </div>
+
+    <script>
+      const answers = {
+        q1: "b",
+        q2: "c",
+        q3: "b",
+        q4: "c",
+        q5: "b",
+        q6: "b",
+        q7: "b",
+        q8: "b",
+        q9: "b",
+        q10: "c",
+      };
+
+      function submitQuiz() {
+        let score = 0;
+        for (let q in answers) {
+          let selected = document.querySelector(`input[name="${q}"]:checked`);
+          if (selected && selected.value === answers[q]) {
+            score++;
+          }
+        }
+        document.getElementById(
+          "score"
+        ).innerText = `🎯 You scored ${score}/10`;
+      }
+
+      function resetQuiz() {
+        const inputs = document.querySelectorAll('input[type="radio"]');
+        inputs.forEach((input) => (input.checked = false));
+        document.getElementById("score").innerText = "";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,358 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+      .cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        cursor: pointer;
+      }
+      .x::before {
+        content: "X";
+        color: white;
+      }
+      .o::before {
+        content: "O";
+        color: white;
+      }
+      .winning-cell {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen"
+  >
+    <div class="w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <div class="relative inline-block text-left">
+          <button
+            class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+            id="menu-button"
+            aria-expanded="true"
+            aria-haspopup="true"
+          >
+            Medium
+            <svg
+              class="-mr-1 ml-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <div
+            class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="menu-button"
+            tabindex="-1"
+          >
+            <div class="py-1" role="none">
+              <a
+                href="#"
+                class="text-white block px-4 py-2 text-sm hover:bg-gray-600"
+                role="menuitem"
+                tabindex="-1"
+                id="menu-item-easy"
+                >Easy</a
+              >
+              <a
+                href="#"
+                class="text-white block px-4 py-2 text-sm hover:bg-gray-600"
+                role="menuitem"
+                tabindex="-1"
+                id="menu-item-medium"
+                >Medium</a
+              >
+              <a
+                href="#"
+                class="text-white block px-4 py-2 text-sm hover:bg-gray-600"
+                role="menuitem"
+                tabindex="-1"
+                id="menu-item-hard"
+                >Hard</a
+              >
+            </div>
+          </div>
+        </div>
+        <div class="flex space-x-4">
+          <div
+            class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-md"
+          >
+            <div class="text-2xl">X</div>
+            <div class="text-xl" id="score-x">0</div>
+          </div>
+          <div
+            class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-md"
+          >
+            <div class="text-2xl">O</div>
+            <div class="text-xl" id="score-o">0</div>
+          </div>
+        </div>
+        <div class="text-xl">
+          <i class="fas fa-share-alt"></i>
+        </div>
+      </div>
+      <div class="text-center mb-4">Start game or select player</div>
+      <div
+        class="bg-teal-500 flex justify-center items-center h-64 mb-4 relative"
+      >
+        <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-0">
+          <div
+            class="border-r-2 border-b-2 border-teal-700 cell"
+            data-cell
+          ></div>
+          <div
+            class="border-r-2 border-b-2 border-teal-700 cell"
+            data-cell
+          ></div>
+          <div class="border-b-2 border-teal-700 cell" data-cell></div>
+          <div
+            class="border-r-2 border-b-2 border-teal-700 cell"
+            data-cell
+          ></div>
+          <div
+            class="border-r-2 border-b-2 border-teal-700 cell"
+            data-cell
+          ></div>
+          <div class="border-b-2 border-teal-700 cell" data-cell></div>
+          <div class="border-r-2 border-teal-700 cell" data-cell></div>
+          <div class="border-r-2 border-teal-700 cell" data-cell></div>
+          <div class="cell" data-cell></div>
+        </div>
+      </div>
+      <div class="text-center text-teal-500 cursor-pointer" id="restart-button">
+        Restart game
+      </div>
+    </div>
+    <script>
+      const cells = document.querySelectorAll("[data-cell]");
+      const restartButton = document.getElementById("restart-button");
+      const scoreX = document.getElementById("score-x");
+      const scoreO = document.getElementById("score-o");
+      const menuButton = document.getElementById("menu-button");
+      const menuItems = document.querySelectorAll('[role="menuitem"]');
+      let isXTurn = true;
+      let xScore = 0;
+      let oScore = 0;
+      let difficulty = "medium";
+
+      const winningCombinations = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      function startGame() {
+        cells.forEach((cell) => {
+          cell.classList.remove("x");
+          cell.classList.remove("o");
+          cell.classList.remove("winning-cell");
+          cell.removeEventListener("click", handleClick);
+          cell.addEventListener("click", handleClick, { once: true });
+        });
+      }
+
+      function handleClick(e) {
+        const cell = e.target;
+        const currentClass = isXTurn ? "x" : "o";
+        placeMark(cell, currentClass);
+        if (checkWin(currentClass)) {
+          endGame(false, currentClass);
+        } else if (isDraw()) {
+          endGame(true);
+        } else {
+          swapTurns();
+          if (!isXTurn) {
+            setTimeout(computerMove, 500);
+          }
+        }
+      }
+
+      function placeMark(cell, currentClass) {
+        cell.classList.add(currentClass);
+      }
+
+      function swapTurns() {
+        isXTurn = !isXTurn;
+      }
+
+      function checkWin(currentClass) {
+        return winningCombinations.some((combination) => {
+          return combination.every((index) => {
+            return cells[index].classList.contains(currentClass);
+          });
+        });
+      }
+
+      function isDraw() {
+        return [...cells].every((cell) => {
+          return cell.classList.contains("x") || cell.classList.contains("o");
+        });
+      }
+
+      function endGame(draw, currentClass) {
+        if (draw) {
+          // Draw logic
+        } else {
+          if (currentClass === "x") {
+            xScore++;
+            scoreX.textContent = xScore;
+          } else {
+            oScore++;
+            scoreO.textContent = oScore;
+          }
+          highlightWinningCells(currentClass);
+        }
+        setTimeout(startGame, 2000);
+      }
+
+      function highlightWinningCells(currentClass) {
+        winningCombinations.forEach((combination) => {
+          if (
+            combination.every((index) =>
+              cells[index].classList.contains(currentClass)
+            )
+          ) {
+            combination.forEach((index) =>
+              cells[index].classList.add("winning-cell")
+            );
+          }
+        });
+      }
+
+      function computerMove() {
+        let availableCells = [...cells].filter(
+          (cell) =>
+            !cell.classList.contains("x") && !cell.classList.contains("o")
+        );
+        let cellToPlay;
+
+        if (difficulty === "easy") {
+          cellToPlay =
+            availableCells[Math.floor(Math.random() * availableCells.length)];
+        } else if (difficulty === "medium") {
+          cellToPlay =
+            findBestMove("o") ||
+            availableCells[Math.floor(Math.random() * availableCells.length)];
+        } else if (difficulty === "hard") {
+          cellToPlay =
+            findBestMove("o") ||
+            availableCells[Math.floor(Math.random() * availableCells.length)];
+        }
+
+        placeMark(cellToPlay, "o");
+        if (checkWin("o")) {
+          endGame(false, "o");
+        } else if (isDraw()) {
+          endGame(true);
+        } else {
+          swapTurns();
+        }
+      }
+
+      function findBestMove(player) {
+        let bestMove = null;
+        let bestScore = -Infinity;
+
+        cells.forEach((cell, index) => {
+          if (!cell.classList.contains("x") && !cell.classList.contains("o")) {
+            cell.classList.add(player);
+            let score = minimax(cells, 0, false, player);
+            cell.classList.remove(player);
+            if (score > bestScore) {
+              bestScore = score;
+              bestMove = cell;
+            }
+          }
+        });
+
+        return bestMove;
+      }
+
+      function minimax(cells, depth, isMaximizing, player) {
+        let scores = {
+          o: 1,
+          x: -1,
+          draw: 0,
+        };
+
+        if (checkWin("o")) {
+          return scores["o"];
+        } else if (checkWin("x")) {
+          return scores["x"];
+        } else if (isDraw()) {
+          return scores["draw"];
+        }
+
+        if (isMaximizing) {
+          let bestScore = -Infinity;
+          cells.forEach((cell, index) => {
+            if (
+              !cell.classList.contains("x") &&
+              !cell.classList.contains("o")
+            ) {
+              cell.classList.add(player);
+              let score = minimax(cells, depth + 1, false, player);
+              cell.classList.remove(player);
+              bestScore = Math.max(score, bestScore);
+            }
+          });
+          return bestScore;
+        } else {
+          let bestScore = Infinity;
+          cells.forEach((cell, index) => {
+            if (
+              !cell.classList.contains("x") &&
+              !cell.classList.contains("o")
+            ) {
+              cell.classList.add(player === "o" ? "x" : "o");
+              let score = minimax(cells, depth + 1, true, player);
+              cell.classList.remove(player === "o" ? "x" : "o");
+              bestScore = Math.min(score, bestScore);
+            }
+          });
+          return bestScore;
+        }
+      }
+
+      restartButton.addEventListener("click", startGame);
+
+      menuButton.addEventListener("click", function () {
+        document.querySelector('[role="menu"]').classList.toggle("hidden");
+      });
+
+      menuItems.forEach((item) => {
+        item.addEventListener("click", function () {
+          difficulty = this.id.split("-")[2];
+          menuButton.textContent = this.textContent;
+          document.querySelector('[role="menu"]').classList.add("hidden");
+          startGame();
+        });
+      });
+
+      startGame();
+    </script>
+  </body>
+</html>

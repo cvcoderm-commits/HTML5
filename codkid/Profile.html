@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive;
+        background: linear-gradient(135deg, #fdfbfb, #ebedee);
+        margin: 0;
+        padding: 0;
+      }
+
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+
+      .profile-container {
+        max-width: 600px;
+        margin: 60px auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        text-align: center;
+      }
+
+      .profile-img-wrapper {
+        position: relative;
+        width: 130px;
+        margin: auto;
+      }
+
+      .profile-img-wrapper input {
+        display: none;
+      }
+
+      .profile-img-wrapper img {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 4px solid #ff6600;
+        object-fit: cover;
+        cursor: pointer;
+      }
+
+      .profile-img-wrapper::after {
+        content: "📷";
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: #ff6600;
+        color: white;
+        border-radius: 50%;
+        padding: 4px;
+        font-size: 14px;
+        pointer-events: none;
+      }
+
+      h1 {
+        margin-top: 15px;
+        color: #333;
+      }
+
+      .edit-icon {
+        font-size: 20px;
+        cursor: pointer;
+        color: #666;
+        margin-left: 10px;
+      }
+
+      .profile-info {
+        text-align: left;
+        margin-top: 30px;
+      }
+
+      .profile-info p {
+        margin: 10px 0;
+        font-size: 16px;
+        color: #444;
+      }
+
+      .back-btn {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 10px 20px;
+        background: #ff6600;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: 0.3s;
+      }
+
+      .back-btn:hover {
+        background: #e65c00;
+      }
+
+      form {
+        display: none;
+        margin-top: 30px;
+        text-align: left;
+      }
+
+      form input,
+      form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-family: "Comic Sans MS", cursive;
+      }
+
+      form button {
+        background-color: #ff6600;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+
+      form button:hover {
+        background-color: #e65c00;
+      }
+
+      .edit-btn {
+        display: inline-block;
+        margin-top: 10px;
+        /* background: #ff6600; */
+        color: rgb(0, 0, 0);
+        border: none;
+        padding: 8px 16px;
+        font-size: 26px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      /* .edit-btn:hover { */
+      /* background: #e65c00; */
+      /* } */
+
+      /* Ensure heading and button are inline */
+      h1.edit-btn {
+        display: inline-block; /* Makes the heading appear on the same line as the button */
+        margin-right: 10px; /* Adds space between the heading and the button */
+      }
+
+      button.edit-btn {
+        display: inline-block; /* Ensures the button stays on the same line */
+        background-color: #ffff;
+        color: #ff6600;
+        /* border: 2px solid #ff6600; */
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button.edit-btn:hover {
+        background-color: #e65c00;
+      }
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1 style="color: white">CodKid</h1>
+      <div class="menu">
+        <center>
+          <a href="CodeKid.html">Dashboard</a>
+          <a href="Codkid_Starter.html">My Lessons</a>
+          <a href="quize.html">Quiz</a>
+          <a href="idea_genretor.html">Ideas</a>
+          <a href="about.html" onclick="showprofile()">About Authority</a>
+          <a href="Profile.html">Profile</a>
+          <a href="Codkid_Starter.html" onclick="showprofile()"
+            >Log in/Sign in</a
+          >
+        </center>
+        <div class="profile-pic">
+          <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+        </div>
+      </div>
+    </nav>
+
+    <div class="profile-container">
+      <div class="profile-img-wrapper">
+        <label for="picUpload">
+          <img
+            id="profilePic"
+            src="Screenshot 2025-03-22 130322.png"
+            alt="Profile Picture"
+          />
+        </label>
+        <input type="file" id="picUpload" accept="image/*" />
+      </div>
+      <h1 class="edit-btn" id="nameDisplay">
+        Mahir
+        <span class="edit-icon" onclick="toggleEdit()">✏️</span>
+      </h1>
+      <button class="edit-btn" onclick="toggleEdit()">✏️</button>
+      <div class="profile-info">
+        <p>
+          <strong>Email:</strong>
+          <span id="emailDisplay">mahir@codingbro.dev</span>
+        </p>
+        <p>
+          <strong>Bio:</strong>
+          <span id="bioDisplay"
+            >Full-stack dev ✨ | Youngest coder 🏆 | Gen Z on a mission
+            💻🚀</span
+          >
+        </p>
+        <p><strong>Joined:</strong> March 2025</p>
+        <p>
+          <strong>Achievements:</strong> ⭐ Trophy Winner | 🔥 Built 30+ Games
+        </p>
+      </div>
+
+      <form id="editForm">
+        <input type="text" id="nameInput" placeholder="Enter new name" />
+        <input type="email" id="emailInput" placeholder="Enter email" />
+        <textarea id="bioInput" placeholder="Your Bio..."></textarea>
+        <button type="submit">Save Changes</button>
+      </form>
+
+      <a href="CodeKid.html" class="back-btn">⬅ Back to Home</a>
+    </div>
+
+    <script>
+      const nameDisplay = document.getElementById("nameDisplay");
+      const emailDisplay = document.getElementById("emailDisplay");
+      const bioDisplay = document.getElementById("bioDisplay");
+      const profilePic = document.getElementById("profilePic");
+      const picUpload = document.getElementById("picUpload");
+
+      window.onload = function () {
+        nameDisplay.textContent =
+          localStorage.getItem("profileName") || "Mahir";
+        emailDisplay.textContent =
+          localStorage.getItem("profileEmail") || "mahir@codingbro.dev";
+        bioDisplay.textContent =
+          localStorage.getItem("profileBio") ||
+          "Full-stack dev ✨ | Youngest coder 🏆 | Gen Z on a mission 💻🚀";
+
+        const savedPic = localStorage.getItem("profilePic");
+        if (savedPic) {
+          profilePic.src = savedPic;
+        }
+      };
+
+      function toggleEdit() {
+        const form = document.getElementById("editForm");
+        form.style.display = form.style.display === "block" ? "none" : "block";
+      }
+
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const newName = document.getElementById("nameInput").value;
+          const newEmail = document.getElementById("emailInput").value;
+          const newBio = document.getElementById("bioInput").value;
+
+          if (newName) {
+            localStorage.setItem("profileName", newName);
+            nameDisplay.childNodes[0].nodeValue = newName;
+          }
+
+          if (newEmail) {
+            localStorage.setItem("profileEmail", newEmail);
+            emailDisplay.textContent = newEmail;
+          }
+
+          if (newBio) {
+            localStorage.setItem("profileBio", newBio);
+            bioDisplay.textContent = newBio;
+          }
+
+          document.getElementById("editForm").reset();
+          toggleEdit();
+          alert("Profile updated ✅");
+        });
+
+      picUpload.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const dataURL = e.target.result;
+            profilePic.src = dataURL;
+            localStorage.setItem("profilePic", dataURL);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+  </body>
+</html>

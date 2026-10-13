@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scratch Quiz</title>
+    <style>
+      body {
+        font-family: Comic Sans MS, sans-serif;
+        /* background-color: #ffcc00; */
+        padding: 20px;
+        background-color: white;
+      }
+      h1 {
+        text-align: center;
+        color: #005dab;
+      }
+      .quiz-container {
+        background: #fff;
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .question {
+        margin-bottom: 15px;
+      }
+      .options input {
+        margin-right: 8px;
+      }
+      #score {
+        font-weight: bold;
+        font-size: 18px;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .buttons {
+        text-align: center;
+        margin-top: 20px;
+      }
+      button {
+        padding: 10px 15px;
+        margin: 0 10px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1>CodKid</h1>
+      <div class="menu">
+        <a href="CodeKid.html" onclick="showDashboard()">Dashboard</a>
+        <a href="CodeKid.html" onclick="showLessons()">My Lessons</a>
+        <a href="quize.html" onclick="showQuiz()">Quiz</a>
+        <a href="idea_genretor.html" onclick="showidea()">Ideas</a>
+        <a href="about.html" onclick="showprofile()">About Authority</a>
+        <a href="Profile.html" onclick="showprofile()">Profile</a>
+        <a href="Codkid_Starter.html" onclick="showprofile()">Log in/Sign in</a>
+      </div>
+      <!-- Profile Picture -->
+      <div class="profile-pic">
+        <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+      </div>
+    </nav>
+    <h1>🧩 Scratch Quiz</h1>
+    <div class="quiz-container" id="quizForm">
+      <div class="question">
+        <p>1. What language is Scratch based on?</p>
+        <div class="options">
+          <input type="radio" name="q1" value="a" /> Python <br />
+          <input type="radio" name="q1" value="b" /> JavaScript <br />
+          <input type="radio" name="q1" value="c" /> Block-based visual language
+          <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>2. What’s the default Scratch cat called?</p>
+        <div class="options">
+          <input type="radio" name="q2" value="a" /> Scratchy <br />
+          <input type="radio" name="q2" value="b" /> Felix <br />
+          <input type="radio" name="q2" value="c" /> Meowster <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>3. What block starts a script when the green flag is clicked?</p>
+        <div class="options">
+          <input type="radio" name="q3" value="a" /> when I receive message
+          <br />
+          <input type="radio" name="q3" value="b" /> when green flag clicked
+          <br />
+          <input type="radio" name="q3" value="c" /> when key pressed <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>4. What is used to change a sprite’s appearance?</p>
+        <div class="options">
+          <input type="radio" name="q4" value="a" /> Backdrops <br />
+          <input type="radio" name="q4" value="b" /> Costumes <br />
+          <input type="radio" name="q4" value="c" /> Blocks <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>5. What block is used to repeat actions?</p>
+        <div class="options">
+          <input type="radio" name="q5" value="a" /> forever <br />
+          <input type="radio" name="q5" value="b" /> say <br />
+          <input type="radio" name="q5" value="c" /> glide <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>6. Which category is the “move 10 steps” block in?</p>
+        <div class="options">
+          <input type="radio" name="q6" value="a" /> Events <br />
+          <input type="radio" name="q6" value="b" /> Motion <br />
+          <input type="radio" name="q6" value="c" /> Operators <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>7. How do you add sound to your Scratch project?</p>
+        <div class="options">
+          <input type="radio" name="q7" value="a" /> Use a costume block <br />
+          <input type="radio" name="q7" value="b" /> Use the sound category
+          blocks <br />
+          <input type="radio" name="q7" value="c" /> You can’t add sound <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>8. What is a "broadcast" used for in Scratch?</p>
+        <div class="options">
+          <input type="radio" name="q8" value="a" /> Send a message to other
+          sprites <br />
+          <input type="radio" name="q8" value="b" /> Change background <br />
+          <input type="radio" name="q8" value="c" /> Play music <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>9. What can you add to control how your project looks?</p>
+        <div class="options">
+          <input type="radio" name="q9" value="a" /> Variables <br />
+          <input type="radio" name="q9" value="b" /> Costumes and backdrops
+          <br />
+          <input type="radio" name="q9" value="c" /> Data blocks <br />
+        </div>
+      </div>
+
+      <div class="question">
+        <p>10. What website is used to share Scratch projects?</p>
+        <div class="options">
+          <input type="radio" name="q10" value="a" /> www.blocks.com <br />
+          <input type="radio" name="q10" value="b" /> www.scratch.mit.edu <br />
+          <input type="radio" name="q10" value="c" /> www.catscratch.com <br />
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button onclick="submitQuiz()">Submit</button>
+        <button onclick="resetQuiz()">Reset</button>
+        <button onclick="window.location.href='quize.html'">Back</button>
+      </div>
+
+      <p id="score"></p>
+    </div>
+
+    <script>
+      const answers = {
+        q1: "c",
+        q2: "a",
+        q3: "b",
+        q4: "b",
+        q5: "a",
+        q6: "b",
+        q7: "b",
+        q8: "a",
+        q9: "b",
+        q10: "b",
+      };
+
+      function submitQuiz() {
+        let score = 0;
+        for (let q in answers) {
+          let selected = document.querySelector(`input[name="${q}"]:checked`);
+          if (selected && selected.value === answers[q]) {
+            score++;
+          }
+        }
+        document.getElementById(
+          "score"
+        ).innerText = `✨ You scored ${score}/10`;
+      }
+
+      function resetQuiz() {
+        const inputs = document.querySelectorAll('input[type="radio"]');
+        inputs.forEach((input) => (input.checked = false));
+        document.getElementById("score").innerText = "";
+      }
+    </script>
+  </body>
+</html>

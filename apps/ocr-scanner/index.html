@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatToScan</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 550px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 { margin-top: 0; text-align: center; }
+    p { text-align: center; opacity: 0.85; }
+
+    select, input, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    #customField { display: none; }
+
+    button {
+      background: #38bdf8;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      min-height: 40px;
+    }
+
+    .hidden { display: none; }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    details { margin-top: 15px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>WhatToScan</h1>
+    <p>Upload an image and extract the information you need.</p>
+
+    <select id="scanType">
+      <option value="">Select what to scan</option>
+      <option value="name">Full Name</option>
+      <option value="dob">Date of Birth</option>
+      <option value="phone">Phone Number</option>
+      <option value="email">Email Address</option>
+      <option value="invoice">Invoice Number</option>
+      <option value="amount">Total Amount</option>
+      <option value="passport">Passport Number</option>
+      <option value="custom">Custom</option>
+    </select>
+
+    <input type="text" id="customField" placeholder="Enter custom keyword (example: GST Number)">
+    <input type="file" id="imageInput" accept="image/*">
+    <button id="scanBtn">Scan Now</button>
+
+    <div id="loader" class="hidden">Scanning image... please wait ⏳</div>
+    <div id="result"></div>
+    <details>
+      <summary>Show full extracted text</summary>
+      <pre id="fullText"></pre>
+    </details>
+  </div>
+
+</body>
+  <script>
+    const scanType = document.getElementById("scanType");
+    const customField = document.getElementById("customField");
+    const imageInput = document.getElementById("imageInput");
+    const scanBtn = document.getElementById("scanBtn");
+    const result = document.getElementById("result");
+    const loader = document.getElementById("loader");
+    const fullText = document.getElementById("fullText");
+
+    scanType.addEventListener("change", () => {
+      customField.style.display = scanType.value === "custom" ? "block" : "none";
+    });
+
+    function extractField(text, type, customKeyword = "") {
+      const patterns = {
+        name: /name[:\s]+(.+)/i,
+        dob: /(date of birth|dob)[:\s]+(.+)/i,
+        phone: /(\+?\d[\d\s-]{8,})/i,
+        email: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
+        invoice: /(invoice\s?(number|no|check)?[:\s#-]+[A-Z0-9-]+)/i,
+        amount: /total[:\s]*((₹|\$|€)?\s?\d+[\d,]*\.?\d{0,2})/i,
+        passport: /([A-Z]\d{7,8})/i
+      };
+
+      if (type === "custom") {
+        const regex = new RegExp(customKeyword + "[:\\s]+(.+)", "i");
+        const match = text.match(regex);
+        return match ? match[1] : "Not found";
+      }
+
+      const match = text.match(patterns[type]);
+      if (!match) return "Not found";
+      const captured = match.slice(1).find(v => v && v.trim());
+      return captured || match[0];
+    }
+
+    scanBtn.addEventListener("click", async () => {
+      const file = imageInput.files[0];
+      if (!file) return alert("Please upload an image first.");
+      if (!scanType.value) return alert("Please select what to scan.");
+
+      loader.classList.remove("hidden");
+      result.innerHTML = "";
+      fullText.textContent = "";
+
+      try {
+        const { data: { text } } = await Tesseract.recognize(file, "eng");
+        fullText.textContent = text;
+        const extracted = extractField(text, scanType.value, customField.value.trim());
+        result.innerHTML = `<strong>Result:</strong> ${extracted}`;
+      } catch (error) {
+        result.innerHTML = "Error scanning image.";
+        console.error(error);
+      }
+
+      loader.classList.add("hidden");
+    });
+  </script>
+</html>
+</body>
+</html>

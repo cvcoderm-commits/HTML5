@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        background: #fef9f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+      }
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1>CodKid</h1>
+      <div class="menu">
+        <a href="CodeKid.html" onclick="showDashboard()">Dashboard</a>
+        <a href="CodeKid.html" onclick="showLessons()">My Lessons</a>
+        <a href="quize.html" onclick="showQuiz()">Quiz</a>
+        <a href="idea_genretor.html" onclick="showidea()">Ideas</a>
+        <a href="about.html" onclick="showprofile()">About Authority</a>
+        <a href="Profile.html" onclick="showprofile()">Profile</a>
+        <a href="Codkid_Starter.html" onclick="showprofile()">Log in/Sign in</a>
+      </div>
+      <!-- Profile Picture -->
+      <div class="profile-pic">
+        <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+      </div>
+    </nav>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <center><h1 style="font-size: 100px">COMMING SOON!</h1></center>
+  </body>
+</html>

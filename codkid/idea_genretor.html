@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Coding Project Idea Generator</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: white;
+        height: 100vh;
+        display: flex;
+
+        flex-direction: column;
+      }
+
+      .card {
+        align-items: center;
+        justify-content: center;
+        /* background: linear-gradient(135deg, #74ebd5, #acb6e5); */
+        /* background: rgba(255, 255, 255, 0.15); */
+        background-color: #ff8c42;
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 70px;
+        text-align: center;
+        width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #fff;
+      }
+
+      #ideaDisplay {
+        margin: 20px 0;
+        font-size: 18px;
+        font-weight: bold;
+        /* background: linear-gradient(135deg, #74ebd5, #acb6e5); */
+        color: #333;
+        background: #ffffff;
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      button {
+        background: white;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        transition: background 0.3s;
+        color: black;
+      }
+
+      button:hover {
+        background: black;
+        color: #fff;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+
+      input[type="submit"] {
+        margin-top: 10px;
+        background: #6a82fb;
+        color: white;
+      }
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+
+      /* Profile Picture Styles */
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding: 20px;
+      }
+
+      .tutorial-container {
+        display: none;
+        width: 100%;
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1>CodKid</h1>
+      <div class="menu">
+        <a href="CodeKid.html" onclick="showDashboard()">Dashboard</a>
+        <a href="CodeKid.html" onclick="showLessons()">My Lessons</a>
+        <a href="quize.html" onclick="showQuiz()">Quiz</a>
+        <a href="idea_genretor.html" onclick="showidea()">Ideas</a>
+        <a href="about.html" onclick="showprofile()">About Authority</a>
+        <a href="Profile.html" onclick="showprofile()">Profile</a>
+        <a href="Codkid_Starter.html" onclick="showprofile()">Log in/Sign in</a>
+      </div>
+      <!-- Profile Picture -->
+      <div class="profile-pic">
+        <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+      </div>
+    </nav>
+    <br />
+    <br />
+    <center>
+      <div class="card">
+        <h1>🛠️ Coding Idea Generator</h1>
+
+        <div id="ideaDisplay">Click below to get an idea!</div>
+
+        <button onclick="generateIdea()">Generate Coding Idea</button>
+
+        <form onsubmit="uploadIdea(event)">
+          <center>
+            <input
+              type="file"
+              id="userIdea"
+              placeholder="Upload your own idea!"
+              required
+            />
+          </center>
+          <br />
+          <input type="submit" value="Upload Idea" />
+        </form>
+      </div>
+    </center>
+
+    <script>
+      const codingIdeas = [
+        "Build a To-Do List App",
+        "Create a Personal Portfolio Website",
+        "Develop a Weather Forecast App",
+        "Make a Memory Card Matching Game",
+        "Create a Chat Application",
+        "Build a Quiz App with Leaderboard",
+        "Develop a Digital Clock or Timer",
+        "Make a Password Generator",
+        "Create a Drawing App with Save Feature",
+        "Develop a Space Invaders-style Game",
+        "Create an Expense Tracker App",
+        "Make a Rock-Paper-Scissors Game",
+        "Develop an E-commerce Frontend Design",
+        "Build a Recipe Search App",
+        "Create a Custom Meme Generator",
+        "Build a Simple Blog Website",
+        "Develop an AI chatbot using OpenAI API",
+        "Create a Currency Converter App",
+        "Build a Random Joke Generator",
+        "Develop a Fitness Tracker Dashboard",
+      ];
+
+      function generateIdea() {
+        const randomIndex = Math.floor(Math.random() * codingIdeas.length);
+        document.getElementById("ideaDisplay").innerText =
+          codingIdeas[randomIndex];
+      }
+
+      function uploadIdea(event) {
+        event.preventDefault();
+        const userIdea = document.getElementById("userIdea").value.trim();
+        if (userIdea) {
+          document.getElementById("ideaDisplay").innerText = userIdea;
+          document.getElementById("userIdea").value = ""; // clear input
+        }
+      }
+    </script>
+  </body>
+</html>

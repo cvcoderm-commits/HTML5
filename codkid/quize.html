@@ -1,0 +1,132 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodKid Quiz</title>
+<style>
+body{
+font-family:"Comic Sans MS",cursive,sans-serif;
+background:#fef9f5;
+margin:0;
+}
+nav{
+background:#ff8c42;
+padding:1rem 2rem;
+display:flex;
+justify-content:space-between;
+align-items:center;
+color:white;
+}
+nav a{
+color:white;
+text-decoration:none;
+margin-left:15px;
+}
+
+.menu {
+display:flex;
+gap:20px;
+}
+
+.menu a {
+color:white;
+text-decoration:none;
+font-size:1rem;
+padding:0.5rem 1rem;
+border-radius:12px;
+transition:background-color 0.3s;
+}
+
+.menu a:hover {
+background-color:#e77b33;
+}
+
+.profile-pic {
+width:40px;
+height:40px;
+border-radius:50%;
+overflow:hidden;
+background-color:#fff;
+border:2px solid #fff;
+box-shadow:0 0 5px rgba(0,0,0,0.3);
+cursor:pointer;
+}
+
+.profile-pic img {
+width:100%;
+height:100%;
+object-fit:cover;
+}
+.container{
+max-width:800px;
+margin:30px auto;
+padding:20px;
+}
+.quiz-card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+button{
+background:#ff8c42;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:10px;
+cursor:pointer;
+margin-top:10px;
+}
+button:hover{
+background:#e77b33;
+}
+#result{
+font-size:1.2rem;
+font-weight:bold;
+margin-top:20px;
+}
+</style>
+</head>
+<body>
+<nav>
+  <h1>CodKid</h1>
+  <div class="menu">
+    <a href="CodeKid.html">Dashboard</a>
+    <a href="CodeKid.html">My Lessons</a>
+    <a href="quize.html">Quiz</a>
+    <a href="idea_genretor.html">Ideas</a>
+    <a href="about.html">About Authority</a>
+    <a href="Profile.html">Profile</a>
+    <a href="Codkid_Starter.html">Log in/Sign in</a>
+  </div>
+  <div class="profile-pic">
+    <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+  </div>
+</nav>
+
+<div class="container">
+  <div class="quiz-card">
+    <h2>🎯 Choose a Quiz</h2>
+    <p>Select a coding quiz and test your knowledge.</p>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:20px;">
+      <div style="flex:1;min-width:250px;background:#fff7f0;padding:20px;border-radius:15px;box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+        <h3>🐍 Python Quiz</h3>
+        <p>10 questions about Python basics, loops, functions and more.</p>
+        <button onclick="window.location.href='quize_python.html'">Start Python Quiz</button>
+      </div>
+
+      <div style="flex:1;min-width:250px;background:#f0f8ff;padding:20px;border-radius:15px;box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+        <h3>🧩 Scratch Quiz</h3>
+        <p>10 questions about Scratch blocks, sprites, costumes and events.</p>
+        <button onclick="window.location.href='quize_scratch.html'">Start Scratch Quiz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

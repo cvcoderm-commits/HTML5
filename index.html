@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mahir's HTML5 Projects</title>
+<style>
+  :root { --bg:#0f172a; --card:#1e293b; --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:48px 16px 24px; text-align:center; }
+  h1 { margin:0 0 8px; font-size:clamp(28px,5vw,44px); }
+  header p { margin:0; color:var(--muted); }
+  main { max-width:1000px; margin:0 auto; padding:0 16px 48px; }
+  h2 { margin:32px 0 12px; font-size:20px; color:var(--accent); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  a.card { display:block; padding:16px; border-radius:12px; background:var(--card); color:inherit; text-decoration:none; border:1px solid transparent; transition:border-color .15s, transform .15s; }
+  a.card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .card strong { display:block; margin-bottom:4px; }
+  .card span { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>HTML5 Projects</h1>
+  <p>Games, apps and UI experiments built with HTML, CSS and JavaScript.</p>
+</header>
+<main>
+  <h2>🎮 Games</h2>
+  <div class="grid">
+    <a class="card" href="games/claw-machine.html"><strong>Claw Machine</strong><span>Arcade claw game</span></a>
+    <a class="card" href="games/snake/index.html"><strong>Snake</strong><span>The classic snake game</span></a>
+    <a class="card" href="games/maze/index.html"><strong>Maze</strong><span>Find your way out</span></a>
+    <a class="card" href="games/tower-of-hanoi.html"><strong>Tower of Hanoi</strong><span>Logic puzzle</span></a>
+    <a class="card" href="games/rock-paper-scissors.html"><strong>Rock Paper Scissors</strong><span>Play against the computer</span></a>
+    <a class="card" href="games/tic-tac-toe.html"><strong>Tic Tac Toe</strong><span>Two-player classic</span></a>
+  </div>
+
+  <h2>🛠️ Apps</h2>
+  <div class="grid">
+    <a class="card" href="money_tracker.html"><strong>Money Tracker</strong><span>Track income and spending</span></a>
+    <a class="card" href="apps/ocr-scanner/index.html"><strong>WhatToScan (OCR)</strong><span>Read text from images</span></a>
+    <a class="card" href="apps/atendo.html"><strong>Atendo</strong><span>Student attendance tracker</span></a>
+    <a class="card" href="apps/weather/index.html"><strong>Weather</strong><span>Live weather by city</span></a>
+    <a class="card" href="apps/100-year-clock/index.html"><strong>100 Year Clock Wheel</strong><span>Your life as a clock</span></a>
+    <a class="card" href="apps/business-card-creator.html"><strong>Business Card Creator</strong><span>Design a business card</span></a>
+    <a class="card" href="apps/calendar/index.html"><strong>Calendar</strong><span>Month-by-month calendar</span></a>
+    <a class="card" href="apps/calculator.html"><strong>Calculator</strong><span>Everyday calculator</span></a>
+  </div>
+
+  <h2>🧒 CodKid</h2>
+  <div class="grid">
+    <a class="card" href="codkid/CodeKid.html"><strong>CodKid</strong><span>Coding site for kids: quizzes, ideas, profile</span></a>
+  </div>
+
+  <h2>🎨 UI Components</h2>
+  <div class="grid">
+    <a class="card" href="ui-components/css-buttons.html"><strong>45 CSS Buttons</strong><span>Pure-CSS button styles</span></a>
+    <a class="card" href="ui-components/login-signup.html"><strong>Login &amp; Sign-up</strong><span>Animated auth form</span></a>
+    <a class="card" href="ui-components/drag-and-drop.html"><strong>Drag &amp; Drop Files</strong><span>File upload area</span></a>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let display = document.getElementById("display");
+        let buttons = Array.from(document.getElementsByClassName("button"));
+        let operator = "";
+        let operand1 = "";
+        let operand2 = "";
+        let result = "";
+
+        buttons.map((button) => {
+          button.addEventListener("click", (e) => {
+            let value = e.target.innerText;
+
+            if (value === "AC") {
+              display.innerText = "0";
+              operator = "";
+              operand1 = "";
+              operand2 = "";
+              result = "";
+            } else if (
+              value === "÷" ||
+              value === "×" ||
+              value === "-" ||
+              value === "+" ||
+              value === "%"
+            ) {
+              operator = value;
+              operand1 = display.innerText;
+              display.innerText = "";
+            } else if (value === "=") {
+              operand2 = display.innerText;
+              switch (operator) {
+                case "÷":
+                  result = parseFloat(operand1) / parseFloat(operand2);
+                  break;
+                case "×":
+                  result = parseFloat(operand1) * parseFloat(operand2);
+                  break;
+                case "-":
+                  result = parseFloat(operand1) - parseFloat(operand2);
+                  break;
+                case "+":
+                  result = parseFloat(operand1) + parseFloat(operand2);
+                  break;
+                case "%":
+                  result = parseFloat(operand1) % parseFloat(operand2);
+                  break;
+              }
+              display.innerText = result;
+              operator = "";
+              operand1 = "";
+              operand2 = "";
+            } else {
+              if (display.innerText === "0") {
+                display.innerText = value;
+              } else {
+                display.innerText += value;
+              }
+            }
+          });
+        });
+      });
+    </script>
+  </head>
+  <body
+    class="bg-gray-900 text-white min-h-screen flex items-center justify-center"
+  >
+    <div class="w-full max-w-2xl mx-auto">
+      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+        <div
+          class="bg-gray-900 rounded-lg p-4 mb-4 flex items-center justify-between"
+        >
+          <i class="fas fa-undo-alt text-gray-400"></i>
+          <div id="display" class="text-right text-4xl">0</div>
+        </div>
+        <div class="grid grid-cols-7 gap-2">
+          <button
+            class="col-span-2 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            Rad | Deg
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            x!
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            (
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            )
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            %
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            AC
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            Inv
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            sin
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            ln
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            7
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            8
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            9
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            ÷
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            π
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            cos
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            log
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            4
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            5
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            6
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            ×
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            e
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            tan
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            √
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            1
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            2
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            3
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            -
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            Ans
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            EXP
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            xʸ
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            0
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            .
+          </button>
+          <button
+            class="col-span-1 bg-blue-600 rounded-full py-4 w-full button"
+          >
+            =
+          </button>
+          <button
+            class="col-span-1 bg-gray-700 rounded-full py-4 w-full button"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

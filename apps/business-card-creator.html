@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Business Card Creator</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: space-between;
+      }
+
+      .form-section,
+      .preview-section {
+        flex: 1 1 calc(50% - 20px);
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+      }
+
+      .form-section h2,
+      .preview-section h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 26px;
+        color: #007bff;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #555;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+
+      .preview-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        min-height: 500px;
+      }
+
+      .card {
+        width: 340px;
+        height: 220px;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        font-family: "Roboto", sans-serif;
+        background: linear-gradient(135deg, #e0eafc, #cfdef3);
+        color: #333;
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .card p {
+        margin: 4px 0;
+        font-size: 14px;
+      }
+
+      .separator {
+        height: 1px;
+        width: 80%;
+        background-color: #ddd;
+        margin: 10px 0;
+      }
+
+      .export-button {
+        text-align: center;
+        margin-top: 30px;
+      }
+
+      .export-button button {
+        padding: 12px 40px;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+
+      .export-button button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 768px) {
+        .form-section,
+        .preview-section {
+          flex: 1 1 100%;
+        }
+
+        .card {
+          width: 100%;
+          height: auto;
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Input Form Section -->
+      <div class="form-section">
+        <h2>Customize Your Card</h2>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Your Name" />
+        </div>
+        <div class="form-group">
+          <label for="job-title">Job Title</label>
+          <input type="text" id="job-title" placeholder="Your Job Title" />
+        </div>
+        <div class="form-group">
+          <label for="company-name">Company Name</label>
+          <input
+            type="text"
+            id="company-name"
+            placeholder="Your Company Name"
+          />
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" placeholder="Your Phone Number" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Your Email" />
+        </div>
+        <div class="form-group">
+          <label for="website">Website URL</label>
+          <input type="text" id="website" placeholder="Your Website" />
+        </div>
+        <div class="form-group">
+          <label for="social">Social Media Link</label>
+          <input
+            type="text"
+            id="social"
+            placeholder="Your Social Media Profile"
+          />
+        </div>
+        <div class="form-group">
+          <label for="template">Template Style</label>
+          <select id="template">
+            <option value="modern">Modern</option>
+            <option value="minimal">Minimal</option>
+            <option value="colorful">Colorful</option>
+            <option value="professional">Professional</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Preview Section -->
+      <div class="preview-section">
+        <h2>Live Preview</h2>
+        <div class="card" id="card">
+          <h3 id="preview-name">Your Name</h3>
+          <div class="separator"></div>
+          <p id="preview-job">Your Job Title</p>
+          <p id="preview-company">Your Company Name</p>
+          <p id="preview-contact">Contact Info</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="export-button">
+      <button id="export-button">Export Card as Image</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+      const formElements = {
+        name: document.getElementById("name"),
+        job: document.getElementById("job-title"),
+        company: document.getElementById("company-name"),
+        phone: document.getElementById("phone"),
+        email: document.getElementById("email"),
+        website: document.getElementById("website"),
+        social: document.getElementById("social"),
+        template: document.getElementById("template"),
+      };
+
+      const previewElements = {
+        name: document.getElementById("preview-name"),
+        job: document.getElementById("preview-job"),
+        company: document.getElementById("preview-company"),
+        contact: document.getElementById("preview-contact"),
+      };
+
+      Object.values(formElements).forEach((el) => {
+        el.addEventListener("input", updatePreview);
+      });
+
+      function updatePreview() {
+        previewElements.name.textContent =
+          formElements.name.value || "Your Name";
+        previewElements.job.textContent =
+          formElements.job.value || "Your Job Title";
+        previewElements.company.textContent =
+          formElements.company.value || "Your Company Name";
+        previewElements.contact.textContent = `${
+          formElements.phone.value || ""
+        } | ${formElements.email.value || ""} | ${
+          formElements.website.value || ""
+        }`;
+        const template = formElements.template.value;
+        const card = document.getElementById("card");
+        switch (template) {
+          case "modern":
+            card.style.background = "#ffffff";
+            card.style.color = "#333";
+            break;
+          case "minimal":
+            card.style.background = "#f4f4f4";
+            card.style.color = "#000";
+            break;
+          case "colorful":
+            card.style.background = "#007bff";
+            card.style.color = "#fff";
+            break;
+          case "professional":
+            card.style.background = "#222";
+            card.style.color = "#fff";
+            break;
+        }
+      }
+
+      document.getElementById("export-button").addEventListener("click", () => {
+        html2canvas(document.getElementById("card")).then((canvas) => {
+          const link = document.createElement("a");
+          link.download = "business_card.png";
+          link.href = canvas.toDataURL();
+          link.click();
+        });
+      });
+    </script>
+  </body>
+</html>

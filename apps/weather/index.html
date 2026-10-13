@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <link rel="icon" type="image/x-icon" href="/Images/favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css"
+      integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;600&display=swap");
+
+      body {
+        background-image: url("https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2076&q=80");
+        background-size: cover;
+
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        height: 100vh;
+      }
+
+      ::placeholder {
+        color: #fff;
+      }
+
+      input {
+        background-color: #575757;
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        font-family: inherit;
+        font-size: 1rem;
+        padding: 1rem;
+        min-width: 300px;
+        color: #fff;
+        transition: 0.2s;
+      }
+
+      input#search:hover {
+        background: #65747b;
+      }
+
+      input:focus {
+        outline: none;
+        align-items: center;
+        margin-bottom: 0;
+        padding-left: 85px;
+      }
+
+      .weather {
+        font-size: 2rem;
+        text-align: center;
+      }
+
+      .weather h2 {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        padding-left: 90px;
+      }
+
+      .card {
+        background: #000000b2;
+        width: 100%;
+        max-width: 470px;
+        height: 70%;
+        padding: 2.5em;
+        text-align: center;
+        border-radius: 30px;
+        color: white;
+      }
+
+      .more-info p {
+        font-size: 20px;
+      }
+      .more-info span {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Container for the weather web app -->
+    <div class="weatherContainer">
+      <h2 class="appHeading">Weather App</h2>
+      <!-- Input Divition for city name -->
+      <div class="search">
+        <form action="" id="weatherForm">
+          <input
+            type="text"
+            name=""
+            id="weatherInput"
+            placeholder="Enter your city here..."
+          />
+          <button class="searchBtn" type="submit">
+            <ul>
+              <li><i class="fa-solid fa-magnifying-glass"></i></li>
+            </ul>
+          </button>
+        </form>
+      </div>
+      <!-- Outut Will show on the screen -->
+      <h2 id="city"></h2>
+      <img src="." alt="" id="weatherImage" />
+      <p class="weatherMain" id="weatherMain"></p>
+      <h2 id="temp"><span class="temp"></span></h2>
+      <div class="todayDates"></div>
+      <div id="todayTime"></div>
+    </div>
+  </body>
+  <script src="script.js"></script>
+</html>

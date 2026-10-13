@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodKid Projects Dashboard</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        background: #fef9f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+      }
+
+      /* Navigation bar styles */
+      nav {
+        background-color: #ff8c42;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      nav h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .menu {
+        display: flex;
+        gap: 20px;
+      }
+      .menu a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+      }
+      .menu a:hover {
+        background-color: #e77b33;
+      }
+
+      /* Profile Picture Styles */
+      .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+      .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding: 20px;
+      }
+
+      .tutorial-container {
+        display: none;
+        width: 100%;
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+      }
+
+      /* Grid layout for lessons */
+      .lessons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+        width: 100%;
+      }
+
+      .card {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+        cursor: pointer;
+        text-align: center;
+        box-sizing: border-box;
+        width: 100%;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+      }
+
+      .card h3 {
+        margin: 0.5rem 0 0.2rem;
+      }
+
+      .card p {
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: 0.5rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 12px;
+        background: #cce5ff;
+        color: #004085;
+        margin-right: 0.3rem;
+      }
+
+      .status {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 12px;
+        background-color: #d4edda;
+        color: #155724;
+        display: inline-block;
+        margin-top: 0.5rem;
+      }
+
+      .back-btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 0.5rem 1.5rem;
+        background-color: #ff8c42;
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+      }
+
+      .back-btn:hover {
+        background-color: #e77b33;
+      }
+      /* Profile Modal Styling */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      .modal-content {
+        background: #fff;
+        margin: 10% auto;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        text-align: left;
+        font-family: "Comic Sans MS", cursive;
+      }
+
+      .modal-content h2 {
+        margin-top: 0;
+        color: #ff8c42;
+      }
+
+      .modal-content input,
+      .modal-content textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-family: inherit;
+      }
+
+      .modal-content button {
+        background: #ff8c42;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      .modal-content button:hover {
+        background: #e77b33;
+      }
+
+      .close-btn {
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav>
+      <h1>CodKid</h1>
+      <div class="menu">
+        <a href="CodeKid.html" onclick="showDashboard()">Dashboard</a>
+        <a href="#" onclick="showLessons()">My Lessons</a>
+        <a href="quize.html" onclick="showQuiz()">Quiz</a>
+        <a href="idea_genretor.html" onclick="showidea()">Ideas</a>
+        <a href="about.html" onclick="showprofile()">About Authority</a>
+        <a href="Profile.html" onclick="showprofile()">Profile</a>
+        <a href="Codkid_Starter.html" onclick="showprofile()">Log in/Sign in</a>
+      </div>
+      <!-- Profile Picture -->
+      <div class="profile-pic">
+        <img src="Screenshot 2025-03-22 130322.png" alt="Profile Picture" />
+      </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <center><h1>Courses</h1>
+    <div id="dashboard" class="container">
+      <div class="card" onclick="showTutorials('Python')">
+        <h3>Python Fundamentals Tutorials</h3>
+        <div class="badge">Python</div>
+        <p>
+          Learn the basics of Python programming, including variables, data
+          types, functions, and more!
+        </p>
+        <div class="status">Watch videos to learn Python</div>
+      </div>
+
+      <br>
+      <br>
+
+      <div class="card" onclick="showTutorials('Scratch')">
+        <h3>Scratch Basics Tutorials</h3>
+        <div class="badge">Scratch</div>
+        <p>
+          Get started with Scratch and learn to create interactive stories,
+          games, and animations.
+        </p>
+        <div class="status">Watch videos to learn Scratch</div>
+      </div>
+    </div>
+    </center>
+
+    <!-- My Lessons Page (Initially Hidden) -->
+    <div id="lessons" class="container" style="display: none">
+      <div class="lessons-grid">
+        <div class="card">
+          <h3>Python Basics</h3>
+          <div class="badge">Python</div>
+          <p>Master the fundamentals of Python programming.</p>
+          <div class="status">Lesson 1: Introduction to Python</div>
+        </div>
+
+        <div class="card">
+          <h3>Python Loops</h3>
+          <div class="badge">Python</div>
+          <p>Understand loops in Python and how to use them.</p>
+          <div class="status">Lesson 2: Loops in Python</div>
+        </div>
+
+        <div class="card">
+          <h3>Scratch Animations</h3>
+          <div class="badge">Scratch</div>
+          <p>Learn to create animations using Scratch.</p>
+          <div class="status">Lesson 1: Basics of Animation</div>
+        </div>
+
+        <div class="card">
+          <h3>Scratch Projects</h3>
+          <div class="badge">Scratch</div>
+          <p>Build your first Scratch project!</p>
+          <div class="status">Lesson 2: Building a Simple Game</div>
+        </div>
+
+        <div class="card">
+          <h3>Python Functions</h3>
+          <div class="badge">Python</div>
+          <p>Learn to write and use functions in Python.</p>
+          <div class="status">Lesson 3: Functions in Python</div>
+        </div>
+
+        <div class="card">
+          <h3>Scratch Logic</h3>
+          <div class="badge">Scratch</div>
+          <p>Learn how to use logic blocks in Scratch.</p>
+          <div class="status">Lesson 3: Scratch Logic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tutorial Page (Initially Hidden) -->
+    <div id="tutorial-page" class="tutorial-container">
+      <h2 id="tutorial-title"></h2>
+      <div id="tutorial-videos" class="tutorial-list"></div>
+      <a href="#" class="back-btn" onclick="backToDashboard()"
+        >Back to Dashboard</a
+      >
+    </div>
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeProfileModal()">&times;</span>
+        <h2>Edit Profile</h2>
+        <form id="profileForm">
+          <label for="username">Name:</label>
+          <input type="text" id="username" placeholder="Enter your name" />
+
+          <label for="bio">Bio:</label>
+          <textarea id="bio" placeholder="Tell us something cool!"></textarea>
+
+          <label for="profilePicUpload">Profile Picture:</label>
+          <input type="file" id="profilePicUpload" accept="image/*" />
+
+          <button type="button" onclick="saveProfile()">Save</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      // Functions to handle navigation
+      function showDashboard() {
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("lessons").style.display = "none";
+        document.getElementById("tutorial-page").style.display = "none";
+      }
+
+      function showLessons() {
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("lessons").style.display = "block";
+        document.getElementById("tutorial-page").style.display = "none";
+      }
+
+      function showMore() {
+        alert("More features coming soon.");
+      }
+
+      // Function to display videos based on topic
+      function showTutorials(topic) {
+        // Hide dashboard and show tutorial page
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("tutorial-page").style.display = "block";
+
+        // Set title for the tutorial page
+        if (topic === "Python") {
+          document.getElementById("tutorial-title").innerText =
+            "Python Fundamentals Tutorials";
+          loadVideos([
+            {
+              title: "Python Basics - Introduction",
+              url: "https://youtu.be/fr1f84rg4Nw?si=5yYVOUJ_p9ZMQpIg",
+            },
+            {
+              title: "Python Variables and Data Types",
+              url: "https://youtu.be/ORCuz7s5cCY?si=8iT9eGXmbAuDIW4D",
+            },
+            {
+              title: "Python Functions Tutorial",
+              url: "https://youtu.be/dyvxxJSGUsE?si=edlsLDlyWhdcO3gr",
+            },
+          ]);
+        } else if (topic === "Scratch") {
+          document.getElementById("tutorial-title").innerText =
+            "Scratch Basics Tutorials";
+          loadVideos([
+            {
+              title: "Scratch Intro - Getting Started",
+              url: "https://www.youtube.com/embed/xyz-scratch-video1",
+            },
+            {
+              title: "Scratch Loops and Motion",
+              url: "https://www.youtube.com/embed/xyz-scratch-video2",
+            },
+            {
+              title: "Scratch Animation Basics",
+              url: "https://www.youtube.com/embed/xyz-scratch-video3",
+            },
+          ]);
+        }
+      }
+
+      // Function to dynamically load video cards
+      function loadVideos(videos) {
+        const videoContainer = document.getElementById("tutorial-videos");
+        videoContainer.innerHTML = "";
+        videos.forEach((video) => {
+          const videoCard = document.createElement("div");
+          videoCard.innerHTML = `
+            <h3>${video.title}</h3>
+            <iframe src="${video.url}" frameborder="0"></iframe>
+          `;
+          videoContainer.appendChild(videoCard);
+        });
+      }
+
+      // Function to navigate back to dashboard
+      function backToDashboard() {
+        showDashboard();
+      }
+      // Open profile modal when profile pic clicked
+      document
+        .querySelector(".profile-pic")
+        .addEventListener("click", function () {
+          document.getElementById("profileModal").style.display = "block";
+        });
+
+      // Close modal
+      function closeProfileModal() {
+        document.getElementById("profileModal").style.display = "none";
+      }
+
+      // Save Profile
+      function saveProfile() {
+        const name = document.getElementById("username").value;
+        const bio = document.getElementById("bio").value;
+        const profilePicInput = document.getElementById("profilePicUpload");
+        const profilePic = profilePicInput.files[0];
+
+        if (name) {
+          alert(`Saved! Name: ${name}\nBio: ${bio}`);
+        }
+
+        // Update profile picture preview (if uploaded)
+        if (profilePic) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.querySelector(".profile-pic img").src = e.target.result;
+          };
+          reader.readAsDataURL(profilePic);
+        }
+
+        closeProfileModal();
+      }
+    </script>
+  </body>
+</html>
