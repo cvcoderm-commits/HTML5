@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student Attendance & Assignment Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root{
+            --bg:#f6fbff;
+            --card:#ffffff;
+            --blue:#1677ff;
+            --muted:#6b7280;
+            --success:#16a34a;
+            --danger:#dc2626;
+            --radius:12px;
+            font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:#0f172a}
+        .app{max-width:1200px;margin:28px auto;padding:20px}
+        header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+        .brand{display:flex;gap:12px;align-items:center}
+        .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#3aa0ff);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+        h1{font-size:18px;margin:0}
+        p.lead{margin:0;color:var(--muted)}
+
+        html,body{
+    width:100%;
+    overflow-x:hidden;
+}
+
+.app{
+    max-width:100%;
+    width:100%;
+    padding:10px;
+}
+
+.panel{
+    width:100%;
+    overflow-x:hidden;
+}
+
+.toolbar{
+    width:100%;
+}
+
+.toolbar > div:last-child{
+    display:flex;
+    flex-wrap:wrap !important;
+    overflow-x:hidden !important;
+    width:100%;
+}
+
+.menu-btn{
+    flex:1 1 140px;
+    min-width:140px;
+}
+
+        /* Layout */
+        .grid{display:grid;grid-template-columns:1fr 3fr;gap:18px}
+        .panel{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 6px 20px rgba(12,24,48,0.06)}
+
+        /* Sidebar: My Classes */
+        .classes-list{display:flex;flex-direction:column;gap:10px}
+        .class-card{padding:12px;border-radius:10px;background:linear-gradient(180deg,#f8fbff,white);display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid rgba(22,119,255,0.07);transition:transform .2s ease}
+        .class-card:hover{
+            transform:translateY(-2px);
+        }
+        .class-info{display:flex;gap:12px;align-items:center}
+        .class-dot{width:36px;height:36px;border-radius:8px;background:rgba(22,119,255,0.12);display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:600}
+        .add-btn{margin-top:12px;display:block;width:100%;padding:10px;border-radius:10px;border:0;background:var(--blue);color:white;font-weight:600;cursor:pointer}
+        .profile-btn{margin-top:12px;padding:10px;border-radius:10px;border:1px dashed rgba(6,8,24,0.06);background:transparent;color:var(--muted);width:100%;}
+
+        /* Main content */
+        .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+        .card-row{display:flex;gap:12px;flex-wrap:wrap}
+        .menu-btn{padding:10px 12px;border-radius:10px;border:0;background:#f1f6ff;color:var(--blue);font-weight:600;cursor:pointer}
+
+        .manual-entry-card{
+            background:#fff;
+            border:1px solid #e6eefb;
+            border-radius:16px;
+            padding:16px;
+        }
+
+        .manual-entry-form{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        .manual-entry-form input{
+            width:100%;
+            padding:10px;
+            border-radius:10px;
+            border:1px solid #e6eefb;
+        }
+
+        .manual-entry-actions{
+            display:flex;
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .manual-entry-actions .menu-btn{
+            flex:1;
+        }
+
+        .hidden{display:none}
+
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:8px;text-align:left;border-bottom:1px solid #f2f5fa}
+
+        .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:#f3f7ff;color:var(--blue);font-weight:600}
+
+        /* Buttons */
+        .btn{padding:8px 10px;border-radius:10px;border:0;cursor:pointer}
+        .btn.present{background:var(--success);color:#fff}
+        .btn.absent{background:var(--danger);color:#fff}
+
+        /* Assignment grid */
+        .assignment-grid{overflow:auto}
+        .assign-table th,
+        .assign-table td{
+            white-space:nowrap;
+        }
+
+        .assign-table{
+            min-width:700px;
+        }
+
+        /* Notices */s
+        textarea{width:100%;min-height:140px;padding:12px;border-radius:10px;border:1px solid #e6eefb}
+
+        /* Reports */
+        .progress{height:10px;background:#e6eefb;border-radius:999px;overflow:hidden}
+        .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),#3aa0ff)}
+
+        /* Responsive */
+        @media (max-width:900px){
+            .manual-entry-actions{
+                flex-direction:column;
+            }
+
+            .manual-entry-actions .menu-btn{
+                width:100%;
+            }
+            .assignment-card{
+                background:#fff;
+                border:1px solid #e6eefb;
+                border-radius:12px;
+                padding:12px;
+                margin-bottom:12px;
+            }
+
+            .assignment-card h4{
+                margin:0 0 10px 0;
+                font-size:16px;
+            }
+
+            .assignment-card-grid{
+                display:grid;
+                grid-template-columns:repeat(3,1fr);
+                gap:10px;
+                margin-bottom:10px;
+            }
+
+            .assignment-card-item{
+                display:flex;
+                align-items:center;
+                gap:6px;
+            }
+            .grid{grid-template-columns:1fr}
+            .toolbar{flex-wrap:wrap}
+
+            .classes-list{
+                display:flex;
+                flex-direction:column;
+                overflow:visible;
+                gap:10px;
+                width:100%;
+            }
+
+            .class-card{
+                width:100%;
+                min-width:0;
+            }
+
+            .toolbar{
+                flex-direction:column;
+                align-items:stretch;
+            }
+
+            .toolbar > div:last-child{
+                margin-left:0 !important;
+                display:flex;
+                flex-wrap:nowrap;
+                overflow-x:auto;
+                gap:8px;
+                width:100%;
+                padding-bottom:8px;
+                -webkit-overflow-scrolling:touch;
+            }
+
+            .toolbar > div:last-child .menu-btn{
+                flex:0 0 auto;
+                white-space:nowrap;
+            }
+
+            header{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            aside.panel{
+                overflow:hidden;
+            }
+
+            #attendanceTable,
+            #attendanceTable thead,
+            #attendanceTable tbody,
+            #attendanceTable th,
+            #attendanceTable td,
+            #attendanceTable tr{
+                display:block;
+            }
+
+            #attendanceTable thead{
+                display:none;
+            }
+
+            #attendanceTable tr{
+                background:#fff;
+                border:1px solid #e6eefb;
+                border-radius:12px;
+                padding:12px;
+                margin-bottom:12px;
+            }
+
+            #attendanceTable td{
+                border:none;
+                padding:6px 0;
+            }
+
+            #attendanceTable td:nth-child(4),
+            #attendanceTable td:nth-child(5){
+                display:flex;
+                flex-wrap:wrap;
+                gap:8px;
+            }
+
+            #attendanceTable .btn,
+            #attendanceTable .menu-btn{
+                width:100%;
+                margin:0;
+            }
+
+            /* Mobile Assignment Table */
+            .assignment-grid{
+                overflow-x:auto;
+                -webkit-overflow-scrolling:touch;
+            }
+
+            #assignmentTable{
+                min-width:700px;
+            }
+
+            #assignmentTable td:first-child,
+            #assignmentTable th:first-child{
+                position:sticky;
+                left:0;
+                background:#fff;
+                z-index:2;
+                min-width:220px;
+            }
+
+            #assignmentTable td:first-child{
+                font-weight:600;
+            }
+        }
+        
+        /* Mobile: hide sidebar when class active */
+        .hide-main.grid{
+            grid-template-columns:1fr;
+        }
+        .hide-main main{
+            display:none;
+        }
+        .hide-sidebar.grid{
+            grid-template-columns:1fr;
+        }
+        .hide-sidebar aside{
+            display:none;
+        }
+        
+        .back-btn{
+            display:none;
+            margin-bottom:12px;
+            padding:10px 12px;
+            border-radius:10px;
+            border:1px solid #e6eefb;
+            background:#f8fbff;
+            color:var(--blue);
+            font-weight:600;
+            cursor:pointer;
+        }
+        
+        .back-btn.show{
+            display:inline-block;
+        }
+
+        .section-top-exit{
+            margin-bottom:12px;
+            padding:10px 12px;
+            border-radius:10px;
+            border:1px solid #e6eefb;
+            background:#f8fbff;
+            color:var(--blue);
+            font-weight:600;
+            cursor:pointer;
+        }
+
+        @media (max-width:900px){
+
+    #notice > div{
+        flex-direction:column !important;
+    }
+
+    #notice textarea{
+        width:100%;
+        min-height:120px;
+    }
+
+    #notice > div > div:first-child > div{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        margin-top:10px;
+    }
+
+    #notice > div > div:first-child > div .menu-btn{
+        width:100%;
+        min-width:0;
+        padding:12px;
+        flex:none;
+    }
+
+    #noticeHistory{
+        max-height:none !important;
+    }
+}
+
+        
+        input[type=file]{
+            padding:8px;
+            border-radius:8px;
+            border:1px solid #e6eefb;
+        }
+        .att-grid-cell{
+            padding:18px;
+            border-radius:12px;
+            text-align:center;
+            font-weight:700;
+            cursor:pointer;
+            background:#fef3c7;
+            border:2px solid #fde68a;
+        }
+        .att-grid-cell.present{
+            background:#22c55e;
+            color:white;
+            border-color:#16a34a;
+        }
+        .att-grid-cell.absent{
+            background:#ef4444;
+            color:white;
+            border-color:#dc2626;
+        }
+        .att-grid-cell.locked{
+            pointer-events:none;
+        }
+    body.dark{
+     --bg:#111827;
+     --card:#1f2937;
+     color:#f9fafb;
+    }
+    </style>
+</head>
+<body>
+    <div id="setupOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999">
+      <div style="background:white;padding:24px;border-radius:14px;width:90%;max-width:420px">
+        <h2 id="setupTitle">Teacher Setup</h2>
+        <input id="teacherName" placeholder="Teacher Name" style="width:100%;padding:10px;margin-bottom:10px">
+        <input id="teacherPassword" type="password" placeholder="Password" style="width:100%;padding:10px;margin-bottom:10px">
+        <input id="schoolName" placeholder="School / College Name (Optional)" style="width:100%;padding:10px;margin-bottom:10px">
+        <button id="setupBtn" class="menu-btn">Continue</button>
+      </div>
+    </div>
+    <div class="app">
+        <header>
+            <div class="brand">
+                <div class="logo">AT</div>
+                <div>
+                    <h1>Attndance & Assignment Dashboard</h1>
+                    <p id="schoolTitle" class="lead"></p>
+                </div>
+            </div>
+            <div>
+                <button id="btnSettings" class="menu-btn">Settings</button>
+            </div>
+        </header>
+
+        <div class="grid" id="mainGrid">
+            <aside class="panel">
+                <h3 style="margin-top:0">My Classes</h3>
+                <div class="classes-list" id="classesList"></div>
+                <button id="addClassBtn" class="add-btn">+ Add Class</button>
+                <button id="profileBtn" class="profile-btn">Profile</button>
+            </aside>
+
+            <main class="panel">
+                <button class="back-btn" id="backBtn">← Back to Classes</button>
+                <!-- Class Dashboard -->
+                <section id="classDashboard" class="">
+                    <div class="toolbar">
+                        <div>
+                            <h2 id="classTitle">Select a class</h2>
+                            <div id="classMeta" style="color:var(--muted);font-size:13px">—</div>
+                            <button id="editClassBtn" class="menu-btn" style="margin-top:8px">✏️</button>
+                        </div>
+                        <div style="margin-left:auto;display:flex;gap:8px">
+                            <button id="deleteAllStudentsBtn" class="menu-btn">Delete All Students</button>
+                            <button class="menu-btn" data-screen="addStudent">Add Student</button>
+                            <button class="menu-btn" data-screen="attendance">Attendance</button>
+                            <button class="menu-btn" data-screen="assignment">Assignment</button>
+                            <button class="menu-btn" data-screen="report">Report</button>
+                            <button class="menu-btn" data-screen="todayAttendance">Today Attendance</button>
+                            <button class="menu-btn" data-screen="notice">Notice</button>
+                        </div>
+                    </div>
+
+                    <div id="dashboardIntro" style="padding:12px;border-radius:10px;background:linear-gradient(90deg,#fff,#f8fbff)">
+                        <div id="priorityNoticeBanner" style="margin-top:10px"></div>
+                    </div>
+                </section>
+
+                <!-- Add Student Screen -->
+                <section id="addStudent" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Add Students</h3>
+                    <div style="display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start">
+                        <div style="flex:1;min-width:260px">
+                            <div style="margin-bottom:8px;color:var(--muted)">Upload XLSX</div>
+                            <input type="file" id="xlsxUpload" accept=".xlsx,.xls" />
+                            <div style="margin-top:20px;">
+                                <button id="processUpload" class="menu-btn">Process Upload</button>
+                            </div>
+                        </div>
+                        <div style="flex:1;min-width:260px">
+                            <div class="manual-entry-card">
+                                <div style="margin-bottom:12px;color:var(--muted)">Manual Entry</div>
+
+                                <div class="manual-entry-form">
+                                    <input id="stuName" placeholder="Full name" />
+                                    <input id="stuRoll" placeholder="Roll #" />
+                                    <input id="stuPhone" placeholder="Phone Number" />
+                                </div>
+
+                                <div class="manual-entry-actions">
+                                    <button id="addStudentManual" class="menu-btn">Add Student</button>
+                                    <button class="menu-btn" id="addStudentExit">Exit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Add Class Screen -->
+                <section id="addClassScreen" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Create New Class</h3>
+                    <div style="max-width:400px">
+                        <input id="newClassName" placeholder="Class name (e.g. History 101)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;margin-bottom:10px" />
+                        <input id="newClassGroup" placeholder="WhatsApp Group Link (Optional)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;margin-bottom:10px" />
+                        <div style="display:flex;gap:8px">
+                            <button id="createClassBtn" class="menu-btn">Create Class</button>
+                            <button id="cancelClassBtn" class="menu-btn">Cancel</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Screen -->
+                <section id="settingsScreen" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                <h3>Settings</h3>
+                <p id="teacherInfo"></p>
+                <input id="teacherNameEdit" placeholder="Teacher Name" style="width:100%;padding:10px;margin-bottom:10px">
+                <input id="schoolNameEdit" placeholder="School / College Name" style="width:100%;padding:10px;margin-bottom:10px">
+                <button id="saveTeacherNameBtn" class="menu-btn">Save Teacher Profile</button>
+                <button id="darkModeBtn" class="menu-btn">🌙</button>
+                <button id="backupBtn" class="menu-btn">💾 Backup Data</button>
+                <input type="file" id="restoreFile" accept=".json" style="display:block;margin-top:10px">
+                <h4>WhatsApp Absent Message Template</h4>
+                <textarea id="absentTemplate">Dear Parent,
+                {student} was absent today.
+                Class: {class}
+                Date: {date}
+                Regards,
+                {teacher}</textarea>
+
+                <button id="saveTemplateBtn" class="menu-btn">
+                Save WhatsApp Template
+                </button>
+                <hr>
+                <h4>Timetable Manager</h4>
+                <button id="openTimetableBtn" class="menu-btn">Open Timetable</button>
+                <button id="changePasswordBtn" class="menu-btn">Change Password</button>
+                <button id="settingsExit" class="menu-btn">Exit</button>
+                </section>
+
+                <!-- Timetable Screen -->
+                <section id="timetableScreen" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                <h3>Class Timetable</h3>
+                <div id="timetableContainer"></div>
+                <div style="margin-top:10px">
+                <button id="addTimeRow" class="menu-btn">Add Row</button>
+                <button id="addTimeCol" class="menu-btn">Add Column</button>
+                <button id="deleteTimeRow" class="menu-btn">Delete Row</button>
+                <button id="deleteTimeCol" class="menu-btn">Delete Column</button>
+                <button id="saveTimetable" class="menu-btn">Save Timetable</button>
+                <button id="timetableExit" class="menu-btn">Exit</button>
+                </div>
+                </section>
+
+                <!-- Attendance Screen -->
+                <section id="attendance" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Attendance</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div>
+                            <button id="listModeBtn" class="menu-btn">List View</button>
+                            <button id="gridModeBtn" class="menu-btn">Grid View</button>
+                            <button id="saveGridAttendance" class="btn present">Save Attendance</button>
+                            <button id="markAllPresent" class="btn present">All Present</button>
+                            <button id="markAllAbsent" class="btn absent">All Absent</button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+                        <input id="attendanceSearch" placeholder="🔍 Search by Name or Roll No" style="flex:1;min-width:220px;padding:10px;border-radius:10px;border:1px solid #e6eefb">
+                        <button id="downloadPdf" class="menu-btn">📄 Download PDF</button>
+                        <button id="downloadXlsx" class="menu-btn">📊 Download XLSX</button>
+                    </div>
+                    <div id="attendanceGrid" class="hidden" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px"></div>
+                    <div style="overflow:auto">
+                        <table id="attendanceTable">
+                            <thead><tr><th>Student</th><th>Roll</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button id="attendanceExit" class="menu-btn">Exit</button>
+                    </div>
+                </section>
+
+                <!-- Assignment Screen -->
+                <section id="assignment" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Assignments</h3>
+                    <input id="assignmentSearch" placeholder="🔍 Search Student" style="width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefb;margin-bottom:10px">
+                    <div style="margin-bottom:10px;color:var(--muted)"></div>
+                    <div id="assignmentCards" class="hidden"></div>
+                    <div class="assignment-grid">
+                        <table class="assign-table" id="assignmentTable">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:12px"><button id="assignmentExit" class="menu-btn">Exit</button></div>
+                </section>
+
+
+                <!-- Today Attendance Screen -->
+                <section id="todayAttendance" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                <h3>Today's Attendance</h3>
+                <div id="todayAttendanceList"></div>
+                <div style="margin-top:12px"><button id="todayAttendanceExit" class="menu-btn">Exit</button></div>
+                </section>
+
+                <!-- Notice Screen -->
+                <section id="notice" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Notices</h3>
+                    <div style="display:flex;gap:12px">
+                        <div style="flex:2">
+                            <textarea id="noticeText" placeholder="Write a notice here..."></textarea>
+                            <div style="margin-top:8px;display:flex;gap:8px">
+                                <button id="publishNotice" class="menu-btn">Publish</button>
+                                <button id="publishPriorityNotice" class="menu-btn">Priority Notice</button>
+                                <button id="shareNoticeGroup" class="menu-btn">Share to Group</button>
+                                <button id="saveDraft" class="menu-btn">Save Draft</button>
+                                <button id="noticeExit" class="menu-btn">Exit</button>
+                            </div>
+                        </div>
+                        <div style="flex:1;min-width:200px">
+                            <h4 style="margin-top:0">Notice History</h4>
+                            <div id="noticeHistory" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Report Screen -->
+                <section id="report" class="hidden">
+                    <button class="section-top-exit">← Exit</button>
+                    <h3>Reports</h3>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+                        <div style="flex:1;min-width:200px">
+                            <label style="color:var(--muted);font-size:13px">Filter</label>
+                            <select id="reportFilter" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefb">
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                                <option>Overall</option>
+                            </select>
+                        </div>
+                        <div style="flex:1;min-width:200px">
+                            <label style="color:var(--muted);font-size:13px">Search student</label>
+                            <input id="reportSearch" placeholder="Search by name" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefb" />
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-bottom:14px">
+                        <h4 style="margin-top:0">Top Performers</h4>
+                        <div id="topPerformers"></div>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div style="flex:1;min-width:320px" class="panel">
+                            <h4 style="margin-top:0">Attendance Report</h4>
+                            <div id="attendanceReportList"></div>
+                        </div>
+                        <div style="flex:1;min-width:320px" class="panel">
+                            <h4 style="margin-top:0">Assignment Report</h4>
+                            <div id="assignmentReportList"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px">
+                        <canvas id="charts" style="max-height:320px"></canvas>
+                    </div>
+
+                    <div style="margin-top:12px"><button id="reportExit" class="menu-btn">Exit</button></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function getTodayKey(){
+            const d = new Date();
+            return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        }
+
+        function autoUnlockAttendance(){
+         return;
+        }
+
+        // Sample in-memory data model
+        const state = {
+            classes: [
+                {id: 'eng1', name: 'English 101', students: [
+                    {id:'s1',name:'Ava Patel',roll:'01',attendance:[], assignments:{A1:true,A2:false,A3:true,A4:false,A5:true}},
+                    {id:'s2',name:'Liam Chen',roll:'02',attendance:[], assignments:{A1:true,A2:true,A3:false,A4:true,A5:false}},
+                    {id:'s3',name:'Noah Smith',roll:'03',attendance:[], assignments:{A1:false,A2:false,A3:true,A4:false,A5:true}}
+                ]},
+                {id: 'psy1', name: 'Psychology', students: [
+                    {id:'p1',name:'Maya Rao',roll:'01',attendance:[], assignments:{A1:true}},
+                ]}
+            ],
+            activeClass: null,
+            notices: []
+        }
+
+        const auth = JSON.parse(localStorage.getItem('atendoAuth') || '{}');
+        document.getElementById('schoolTitle').textContent =
+        auth.school || auth.college || '';
+
+        // Local Storage
+        function saveState(){
+            localStorage.setItem('atendoData', JSON.stringify({
+                classes: state.classes,
+                notices: state.notices
+            }));
+        }
+
+        function loadState(){
+            const saved = localStorage.getItem('atendoData');
+            if(!saved) return;
+            try{
+                const data = JSON.parse(saved);
+                if(data.classes) state.classes = data.classes;
+                if(data.notices) state.notices = data.notices;
+            }catch(err){
+                console.error('Failed to load saved data', err);
+            }
+        }
+
+        // Utility
+        const $ = id => document.getElementById(id);
+
+        // Render classes
+        function renderClasses(){
+            const list = $('classesList'); list.innerHTML='';
+            state.classes.forEach(cls=>{
+                const el = document.createElement('div'); el.className='class-card';
+                el.innerHTML = `<div class="class-info"><div class="class-dot">${cls.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</div><div><strong>${cls.name}</strong><div style=\"color:var(--muted);font-size:13px\">${cls.students.length} students</div></div></div><div><button class="delete-class-btn" data-id="${cls.id}" style="border:none;background:#fee2e2;color:#dc2626;padding:6px 10px;border-radius:8px;cursor:pointer">🗑️</button></div>`;
+                el.onclick = (e)=>{
+                    if(e.target.closest('.delete-class-btn')) return;
+                    openClass(cls.id);
+                };
+                list.appendChild(el);
+            })
+            setTimeout(()=>{
+                document.querySelectorAll('.delete-class-btn').forEach(btn=>{
+                    btn.onclick = (e)=>{
+                        e.stopPropagation();
+                        deleteClass(btn.dataset.id);
+                    };
+                });
+            },0);
+        }
+
+        // Navigation — hide all sections and show only the requested one
+        function show(screen){
+            const sections = document.querySelectorAll('main.panel > section');
+            sections.forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById(screen);
+            if(target) target.classList.remove('hidden');
+        }
+
+        // Open class — hide sidebar on mobile, show back button and dashboard
+        function openClass(id){
+            const cls = state.classes.find(c=>c.id===id); if(!cls) return;
+            state.activeClass = cls;
+            $('classTitle').textContent = cls.name;
+            $('classMeta').textContent =
+`${cls.students.length} students${cls.whatsappGroup ? ' • WhatsApp Group Connected' : ' • No WhatsApp Group'}`;
+            $('mainGrid').classList.remove('hide-main');
+            $('mainGrid').classList.add('hide-sidebar');
+            $('backBtn').classList.add('show');
+            // Show the class dashboard section
+            const sections = document.querySelectorAll('main.panel > section');
+            sections.forEach(sec => sec.classList.add('hidden'));
+            $('classDashboard').classList.remove('hidden');
+        }
+        
+        // Go back to class list
+        function backToClasses(){
+            state.activeClass = null;
+            $('mainGrid').classList.add('hide-main');
+            $('mainGrid').classList.remove('hide-sidebar');
+            $('backBtn').classList.remove('show');
+            const sections = document.querySelectorAll('main.panel > section');
+            sections.forEach(sec => sec.classList.add('hidden'));
+        }
+
+        function deleteClass(id){
+            const cls = state.classes.find(c=>c.id===id);
+            if(!cls) return;
+
+            if(!confirm(`Delete class "${cls.name}"? All students and attendance data will be removed.`)) return;
+
+            state.classes = state.classes.filter(c=>c.id !== id);
+
+            if(state.activeClass && state.activeClass.id === id){
+                backToClasses();
+            }
+
+            saveState();
+            renderClasses();
+        }
+
+        // Add class
+        $('addClassBtn').addEventListener('click',()=>{
+            $('mainGrid').classList.remove('hide-main');
+            $('mainGrid').classList.remove('hide-sidebar');
+            $('backBtn').classList.add('show');
+            show('addClassScreen');
+            $('newClassName').value='';
+            if($('newClassGroup')) $('newClassGroup').value='';
+            $('newClassName').focus();
+        })
+
+        $('createClassBtn').addEventListener('click',()=>{
+            const name = $('newClassName').value.trim();
+            if(!name) return alert('Enter a class name');
+
+            const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'') + Date.now();
+            state.classes.push({
+    id,
+    name,
+    whatsappGroup: $('newClassGroup')?.value.trim() || '',
+    students:[]
+});
+            saveState();
+            renderClasses();
+            openClass(id);
+        });
+
+        $('cancelClassBtn').addEventListener('click',()=>{
+            $('mainGrid').classList.add('hide-main');
+            $('backBtn').classList.remove('show');
+            show('classDashboard');
+        });
+
+        // Menu buttons in dashboard
+        document.querySelectorAll('.menu-btn[data-screen]').forEach(btn=>{
+            btn.addEventListener('click', e =>{
+                e.preventDefault(); e.stopPropagation();
+                const screen = btn.getAttribute('data-screen');
+                // Require an active class for screens that need class context
+                const needsClass = ['addStudent','attendance','assignment','notice','report','todayAttendance'];
+                if(needsClass.includes(screen) && !state.activeClass){
+                    return alert('Please select a class first.');
+                }
+                show(screen);
+                // Hide back button while in detail screens; show in dashboard
+                if(screen === 'classDashboard'){
+                    $('backBtn').classList.add('show');
+                } else {
+                    $('backBtn').classList.remove('show');
+                }
+                if(screen==='attendance') renderAttendance();
+                if(screen==='assignment') renderAssignment();
+                if(screen==='notice') renderNotices();
+                if(screen==='report') renderReports();
+                if(screen==='todayAttendance') renderTodayAttendance();
+            })
+        })
+
+        // Exit actions — return to class dashboard
+        document.querySelectorAll('#exitClass, #addStudentExit, #attendanceExit, #assignmentExit, #noticeExit, #reportExit, #todayAttendanceExit').forEach(b=>b.addEventListener('click',()=>{
+            show('classDashboard');
+            $('backBtn').classList.add('show');
+        }))
+
+        document.querySelectorAll('.section-top-exit').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+                show('classDashboard');
+                $('backBtn').classList.add('show');
+            });
+        });
+
+        // Keep Back to Classes visible only on the class dashboard
+        const originalShow = show;
+        show = function(screen){
+            originalShow(screen);
+            if(screen === 'classDashboard'){
+                $('backBtn').classList.add('show');
+            }else{
+                $('backBtn').classList.remove('show');
+            }
+        };
+        
+        // Back button — return to class list
+        $('backBtn').addEventListener('click', backToClasses);
+        document.getElementById('editClassBtn')?.addEventListener('click',()=>{
+
+    if(!state.activeClass)
+        return alert('Select a class first');
+
+    const newName = prompt(
+        'Class Name',
+        state.activeClass.name
+    );
+
+    if(newName === null) return;
+
+    const newGroup = prompt(
+        'WhatsApp Group Link',
+        state.activeClass.whatsappGroup || ''
+    );
+
+    if(newGroup === null) return;
+
+    state.activeClass.name =
+        newName.trim() || state.activeClass.name;
+
+    state.activeClass.whatsappGroup =
+        newGroup.trim();
+
+    saveState();
+    renderClasses();
+    openClass(state.activeClass.id);
+
+    alert('Class updated successfully');
+});
+
+        // Add student manual
+        $('addStudentManual').addEventListener('click',()=>{
+            const name = $('stuName').value.trim(); 
+            const roll = $('stuRoll').value.trim();
+            const phone = $('stuPhone').value.trim();
+            if(!name) return alert('Enter a name');
+            state.activeClass.students.push({
+                id:'s'+Date.now(),
+                name,
+                roll,
+                phone,
+                attendance:[],
+                assignments:{},
+                gridStatus:'',
+                gridLocked:false,
+           });
+            saveState();
+            $('stuName').value=''; 
+            $('stuRoll').value=''; 
+            $('stuPhone').value='';       
+            alert('Student added');
+        })
+
+        // Attendance
+        function renderAttendance(){
+            const tbody = $('attendanceTable').querySelector('tbody'); tbody.innerHTML='';
+            const grid = $('attendanceGrid');
+            grid.innerHTML='';
+            grid.classList.add('hidden');
+            grid.style.display='none';
+            document.querySelector('#attendanceTable').parentElement.classList.remove('hidden');
+            $('saveGridAttendance').style.display='none';
+            $('markAllPresent').style.display='inline-block';
+            $('markAllAbsent').style.display='inline-block';
+            const students = state.activeClass?.students||[];
+            if($('attendanceSearch')) $('attendanceSearch').value='';
+            // Grid attendance view
+            students.forEach(s=>{
+                const cell=document.createElement('div');
+                cell.className='att-grid-cell';
+                cell.textContent=s.roll || s.name;
+                if(s.gridStatus==='present') cell.classList.add('present');
+                if(s.gridStatus==='absent') cell.classList.add('absent');
+                // if(s.gridLocked) cell.classList.add('locked'); // REMOVE this line (step 2/9)
+                cell.onclick=()=>{
+                    // if(s.gridLocked) return; // REMOVE this line (step 3)
+                    if(s.gridStatus==='present'){
+                        s.gridStatus='absent';
+                    }else if(s.gridStatus==='absent'){
+                        s.gridStatus='';
+                    }else{
+                        s.gridStatus='present';
+                    }
+                    cell.classList.remove('present','absent');
+                    if(s.gridStatus) cell.classList.add(s.gridStatus);
+                };
+                grid.appendChild(cell);
+            });
+            // List/table attendance view
+            students.forEach(s=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+<td><strong>${s.name}</strong></td>
+<td>Roll: ${s.roll||'-'}</td>
+<td>Phone: ${s.phone||'-'}</td>
+<td></td>
+<td></td>`;
+                const statusTd = tr.querySelector('td:nth-child(4)');
+                const actionTd = tr.querySelector('td:nth-child(5)');
+                
+                const p = document.createElement('button'); p.className='btn present'; p.textContent='Present';
+                const a = document.createElement('button'); a.className='btn absent'; a.textContent='Absent';
+                p.onclick = ()=>{
+                    // if(s.gridLocked){
+                    //     alert('Attendance is locked and cannot be edited');
+                    //     return;
+                    // }
+                    s.lastStatus='present';
+                    updateAttendanceRow(statusTd,s);
+                }
+                a.onclick = ()=>{
+                    // if(s.gridLocked){
+                    //     alert('Attendance is locked and cannot be edited');
+                    //     return;
+                    // }
+                    s.lastStatus='absent';
+                    updateAttendanceRow(statusTd,s);
+                }
+                statusTd.appendChild(p); statusTd.appendChild(a);
+                // if(s.gridLocked){
+                //     p.disabled=true;
+                //     a.disabled=true;
+                //     p.style.opacity='0.5';
+                //     a.style.opacity='0.5';
+                // }
+                
+                // Delete button
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '🗑️ Delete';
+                delBtn.className = 'menu-btn';
+                delBtn.style.fontSize = '12px';
+                delBtn.onclick = ()=>deleteStudent(s.id);
+                actionTd.appendChild(delBtn);
+                if(s.phone){
+    const waBtn = document.createElement('a');
+
+    let msg =
+        localStorage.getItem('absentTemplate') ||
+`Dear Parent,
+
+{student} was absent today.
+
+Class: {class}
+Date: {date}
+
+Regards,
+{teacher}`;
+
+    const auth =
+        JSON.parse(localStorage.getItem('atendoAuth') || '{}');
+
+    msg = msg
+        .replace('{student}', s.name)
+        .replace('{class}', state.activeClass?.name || '')
+        .replace('{date}', new Date().toLocaleDateString())
+        .replace('{teacher}', auth.name || 'Teacher');
+
+    waBtn.href =
+        `https://wa.me/${s.phone}?text=${encodeURIComponent(msg)}`;
+
+    waBtn.target = '_blank';
+    waBtn.className = 'menu-btn';
+    waBtn.textContent = '📱 Send Message';
+
+    actionTd.appendChild(waBtn);
+}
+                
+                // restore
+                if(s.lastStatus) updateAttendanceRow(statusTd,s);
+                tbody.appendChild(tr);
+            })
+        }
+        
+        // Delete student
+        function deleteStudent(id){
+            if(!confirm('Delete this student? This cannot be undone.')) return;
+            state.activeClass.students = state.activeClass.students.filter(s=>s.id !== id);
+            saveState();
+            renderAttendance();
+            alert('Student deleted');
+        }
+
+        function deleteAllStudents(){
+            if(!state.activeClass) return;
+            if(!confirm(`Delete ALL students from ${state.activeClass.name}? This cannot be undone.`)) return;
+
+            state.activeClass.students = [];
+            saveState();
+            renderClasses();
+
+            const meta = document.getElementById('classMeta');
+            if(meta) meta.textContent = '0 students';
+
+            alert('All students deleted');
+        }
+
+        document.getElementById('deleteAllStudentsBtn')?.addEventListener('click',()=>{
+            deleteAllStudents();
+        });
+        function updateAttendanceRow(td,s){
+            td.querySelectorAll('.btn').forEach(b=>b.style.opacity=1);
+            if(s.lastStatus==='present'){
+                td.querySelector('.present').style.boxShadow='0 2px 6px rgba(22,163,74,0.2)';
+                td.querySelector('.absent').style.opacity=0.5;
+                // record
+                s.attendance.push({date:Date.now(),status:'present'});
+            }else{
+                td.querySelector('.absent').style.boxShadow='0 2px 6px rgba(220,38,38,0.18)';
+                td.querySelector('.present').style.opacity=0.5;
+                s.attendance.push({date:Date.now(),status:'absent'});
+            }
+            saveState();
+            renderAttendance();
+        }
+        // List/Grid attendance mode switch and save grid attendance
+        $('gridModeBtn').addEventListener('click',()=>{
+            $('attendanceGrid').classList.remove('hidden');
+            $('attendanceGrid').style.display='grid';
+            document.querySelector('#attendanceTable').parentElement.classList.add('hidden');
+            if($('markAllPresent')) $('markAllPresent').style.display='none';
+            if($('markAllAbsent')) $('markAllAbsent').style.display='none';
+            $('saveGridAttendance').style.display='inline-block';
+        });
+
+        $('listModeBtn').addEventListener('click',()=>{
+            $('attendanceGrid').classList.add('hidden');
+            $('attendanceGrid').style.display='none';
+            document.querySelector('#attendanceTable').parentElement.classList.remove('hidden');
+            if($('markAllPresent')) $('markAllPresent').style.display='inline-block';
+            if($('markAllAbsent')) $('markAllAbsent').style.display='inline-block';
+            $('saveGridAttendance').style.display='none';
+        });
+
+        $('saveGridAttendance').addEventListener('click',()=>{
+            if(!state.activeClass) return;
+            localStorage.setItem('atendoAttendanceDay', getTodayKey());
+            state.activeClass.students.forEach(s=>{
+             if(!s.gridStatus) s.gridStatus='absent';
+             s.lastStatus = s.gridStatus;
+             s.attendance.push({
+              date:Date.now(),
+              status:s.gridStatus
+             });
+            });
+
+            saveState();
+
+            alert('Attendance saved successfully');
+
+            // Reset all grid cells back to the unmarked (yellow) state
+            state.activeClass.students.forEach(s=>{
+                s.gridStatus = '';
+            });
+
+            $('attendanceGrid').classList.add('hidden');
+            $('attendanceGrid').style.display='none';
+            renderAttendance();
+        });
+
+        $('markAllPresent').addEventListener('click',()=>{
+            (state.activeClass?.students||[]).forEach(s=>{
+                s.lastStatus='present';
+                s.attendance.push({date:Date.now(),status:'present'});
+            });
+            saveState();
+            renderAttendance();
+        });
+
+        $('markAllAbsent').addEventListener('click',()=>{
+            (state.activeClass?.students||[]).forEach(s=>{
+                s.lastStatus='absent';
+                s.attendance.push({date:Date.now(),status:'absent'});
+            });
+            saveState();
+            renderAttendance();
+        });
+
+        // Download attendance as PDF
+        $('downloadPdf').addEventListener('click',()=>{
+            if(!state.activeClass) return alert('No class selected');
+            const {jsPDF} = window.jspdf;
+            const doc = new jsPDF();
+            const title = `Attendance Report - ${state.activeClass.name}`;
+            const date = new Date().toLocaleDateString();
+            
+            doc.setFontSize(16);
+            doc.text(title, 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Date: ${date}`, 14, 25);
+            
+            const students = state.activeClass.students;
+            const data = students.map(s=>{
+                const total = s.attendance.length;
+                const present = s.attendance.filter(a=>a.status==='present').length;
+                const pct = total? Math.round(present/total*100):0;
+                return [s.name, s.roll||'—', present, total, `${pct}%`];
+            });
+            
+            doc.autoTable({
+                head: [['Student', 'Roll', 'Present', 'Total', 'Percentage']],
+                body: data,
+                startY: 35,
+                margin: {left:14, right:14}
+            });
+            
+            doc.save(`${state.activeClass.name}_attendance.pdf`);
+            alert('PDF downloaded');
+        })
+        
+        // Download attendance as XLSX
+        $('downloadXlsx').addEventListener('click',()=>{
+            if(!state.activeClass) return alert('No class selected');
+            const ws_name = 'Attendance';
+            const wb = XLSX.utils.book_new();
+            
+            const data = [['Student', 'Roll', 'Present', 'Total', 'Percentage']];
+            state.activeClass.students.forEach(s=>{
+                const total = s.attendance.length;
+                const present = s.attendance.filter(a=>a.status==='present').length;
+                const pct = total? Math.round(present/total*100):0;
+                data.push([s.name, s.roll||'—', present, total, `${pct}%`]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [{wch:20},{wch:8},{wch:10},{wch:8},{wch:12}];
+            XLSX.utils.book_append_sheet(wb, ws, ws_name);
+            const wbout = XLSX.write(wb, {
+  bookType: "xlsx",
+  type: "array"
+});
+
+const blob = new Blob(
+  [wbout],
+  {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  }
+);
+
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+a.href = url;
+a.download = "Attendance.xlsx";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+            alert('XLSX downloaded');
+        })
+
+        // Assignment grid
+        function renderAssignment(){
+            const students = state.activeClass?.students||[];
+            // collect assignments keys
+            const keys = new Set(); students.forEach(s=>Object.keys(s.assignments||{}).forEach(k=>keys.add(k)));
+            const assignments = Array.from(keys); if(assignments.length===0) assignments.push('A1','A2','A3','A4','A5');
+
+            const isMobile = window.innerWidth <= 900;
+            const cardBox = document.getElementById('assignmentCards');
+
+            if(isMobile && cardBox){
+                cardBox.classList.remove('hidden');
+                document.querySelector('.assignment-grid').style.display='none';
+
+                cardBox.innerHTML = students.map(s=>`
+                    <div class="assignment-card">
+                        <h4>${s.name}</h4>
+                        <div style="color:var(--muted);margin-bottom:8px">Roll No: ${s.roll || '-'}</div>
+                        <div class="assignment-card-grid">
+                            ${assignments.map(a=>`
+                                <label class="assignment-card-item">
+                                    <input type="checkbox" data-stu="${s.id}" data-asg="${a}" ${(s.assignments && s.assignments[a]) ? 'checked' : ''}>
+                                    ${a}
+                                </label>
+                            `).join('')}
+                        </div>
+                        <button class="menu-btn" data-stu="${s.id}" data-action="score">${s.score || 'Add Score'}</button>
+                    </div>
+                `).join('');
+            }else{
+                if(cardBox) cardBox.classList.add('hidden');
+                document.querySelector('.assignment-grid').style.display='block';
+                const thead = $('assignmentTable').querySelector('thead'); const tbody = $('assignmentTable').querySelector('tbody'); thead.innerHTML=''; tbody.innerHTML='';
+                const trh = document.createElement('tr'); trh.innerHTML = `<th>Student</th>`+assignments.map(a=>`<th>${a}</th>`).join('')+`<th>Score</th>`; thead.appendChild(trh);
+                students.forEach(s=>{
+                    const tr = document.createElement('tr');
+                    const cells = [`<td><strong>${s.name}</strong><br><small>Roll: ${s.roll || '-'}</small></td>`];
+                    assignments.forEach(a=>{
+                        const done = !!(s.assignments && s.assignments[a]);
+                        cells.push(`<td style="text-align:center"><input type=checkbox data-stu='${s.id}' data-asg='${a}' ${done? 'checked':''}></td>`)
+                    })
+                    cells.push(`
+<td>
+    <button class="menu-btn" data-stu='${s.id}' data-action='score'>
+        ${s.score || 'Add Score'}
+    </button>
+</td>`)
+                    tr.innerHTML = cells.join('');
+                    tbody.appendChild(tr);
+                })
+            // bindings
+            }
+            document.querySelectorAll('#assignment input[type=checkbox]').forEach(cb=>cb.addEventListener('change',e=>{
+                const stu = e.target.dataset.stu; const asg = e.target.dataset.asg; const val = e.target.checked;
+                const s = state.activeClass.students.find(x=>x.id===stu); if(!s) return; s.assignments[asg]=val; saveState(); renderReports();
+            }))
+            document.querySelectorAll('#assignment button[data-action=score]').forEach(b=>b.addEventListener('click',e=>{
+                const id = e.target.dataset.stu;
+                const s = state.activeClass.students.find(x=>x.id===id);
+                const score = prompt('Enter score for ' + s.name, s.score || '');
+                if(score != null){
+                    s.score = score;
+                    saveState();
+                    renderAssignment();
+                    renderReports();
+                }
+            }))
+            // Assignment search box logic
+            const searchBox = document.getElementById('assignmentSearch');
+            if(searchBox){
+                searchBox.oninput = (e)=>{
+                    const q = e.target.value.toLowerCase().trim();
+
+                    document.querySelectorAll('#assignmentTable tbody tr').forEach(row=>{
+                        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+                    });
+
+                    document.querySelectorAll('.assignment-card').forEach(card=>{
+                        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                };
+            }
+        }
+
+        function renderTodayAttendance(){
+         const box = $('todayAttendanceList');
+         if(!box) return;
+         const students = state.activeClass?.students || [];
+         box.innerHTML = students.map(s=>`
+         <div style="padding:10px;border-bottom:1px solid #e6eefb;display:flex;justify-content:space-between">
+         <div><strong>${s.name}</strong><br>Roll: ${s.roll||'-'}<br>Phone: ${s.phone||'-'}</div>
+         <div>${s.gridStatus==='present'?'✅ Present':s.gridStatus==='absent'?'❌ Absent':(s.lastStatus==='present'?'✅ Present':s.lastStatus==='absent'?'❌ Absent':'➖ Not Marked')}</div>
+         </div>`).join('');
+        }
+
+        // Notices
+        function renderNotices(){
+            const hist = $('noticeHistory'); hist.innerHTML='';
+            state.notices.slice().reverse().forEach(n=>{
+                const d = new Date(n.ts).toLocaleString();
+                const el = document.createElement('div'); el.style.padding='8px'; el.style.borderRadius='8px'; el.style.background='#fbfdff'; el.innerHTML = `<strong style=\"font-size:13px\">${n.title||'Notice'}</strong><div style=\"color:var(--muted);font-size:12px\">${d}</div><div style=\"margin-top:6px;color:#0f172a\">${n.text}</div>`;
+                hist.appendChild(el);
+            })
+        }
+        $('publishNotice').addEventListener('click',()=>{
+            const txt = $('noticeText').value.trim(); if(!txt) return alert('Write notice');
+            state.notices.push({ts:Date.now(),text:txt,title:txt.split('\n')[0].slice(0,60)});
+            saveState();
+            $('noticeText').value='';
+            renderNotices();
+            alert('Notice published');
+        })
+        $('saveDraft').addEventListener('click',()=>{ alert('Draft saved locally (in-memory)'); })
+
+        // Reports
+        function renderReports(){
+            const students = state.activeClass?.students||[];
+            const attDiv = $('attendanceReportList'); attDiv.innerHTML='';
+            students.forEach(s=>{
+                const total = s.attendance.length || 0; const present = s.attendance.filter(a=>a.status==='present').length; const pct = total? Math.round(present/total*100): 0;
+                const node = document.createElement('div'); node.style.marginBottom='10px'; node.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${s.name}</strong><br><small>Roll: ${s.roll || '-'}</small></div><div>${pct}%</div></div><div class="progress"><i style="width:${pct}%"></i></div>`;
+                attDiv.appendChild(node);
+            })
+
+            const asgDiv = $('assignmentReportList'); asgDiv.innerHTML='';
+            students.forEach(s=>{
+                const keys = Object.keys(s.assignments||{}); const done = keys.filter(k=>s.assignments[k]).length; const pct = keys.length? Math.round(done/keys.length*100) : 0;
+                const node = document.createElement('div'); node.style.marginBottom='10px'; node.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${s.name}</strong><br><small>Roll: ${s.roll || '-'}</small></div><div>${pct}%</div></div><div class="progress"><i style="width:${pct}%"></i></div>`;
+                asgDiv.appendChild(node);
+            })
+
+            // Top Performers panel
+            const topBox = $('topPerformers');
+            if(topBox){
+                const ranked = students.map(s=>{
+                    const total = s.attendance.length || 0;
+                    const present = s.attendance.filter(a=>a.status==='present').length;
+                    const attendancePct = total ? Math.round((present/total)*100) : 0;
+
+                    const keys = Object.keys(s.assignments || {});
+                    const done = keys.filter(k=>s.assignments[k]).length;
+                    const assignmentPct = keys.length ? Math.round((done/keys.length)*100) : 0;
+
+                    return {
+                        name:s.name,
+                        score:Math.round((attendancePct + assignmentPct)/2),
+                        attendancePct,
+                        assignmentPct
+                    };
+                }).sort((a,b)=>b.score-a.score).slice(0,5);
+
+                if(ranked.length===0){
+                    topBox.innerHTML = '<div style="color:var(--muted)">No students available</div>';
+                }else{
+                    topBox.innerHTML = ranked.map((s,i)=>`
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e6eefb">
+                            <div>
+                                <strong>${i===0?'👑🥇':i===1?'🥈':i===2?'🥉':''} #${i+1} ${s.name}</strong><br>
+                                <small>Attendance ${s.attendancePct}% • Assignments ${s.assignmentPct}%</small>
+                            </div>
+                            <div class="pill">${s.score}%</div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Chart: aggregated attendance
+            const ctx = $('charts'); if(ctx){
+                const labels = students.map(s=>s.name);
+                const values = students.map(s=>{ const total = s.attendance.length; const present = s.attendance.filter(a=>a.status==='present').length; return total? Math.round(present/total*100):0 });
+                if(window._chart) window._chart.destroy();
+                window._chart = new Chart(ctx, {type:'bar',data:{labels, datasets:[{label:'Attendance %',data:values,backgroundColor:'rgba(22,119,255,0.8)'}]}, options:{responsive:true,plugins:{legend:{display:false}}}})
+            }
+        }
+
+        // Load saved data then render
+        loadState();
+        autoUnlockAttendance();
+        renderClasses();
+
+        function initializeAuth(){
+         const auth=JSON.parse(localStorage.getItem('atendoAuth')||'null');
+         if(!auth){
+           $('setupTitle').textContent='First Time Setup';
+         }else{
+           $('setupTitle').textContent='Teacher Login';
+           $('teacherName').style.display='none';
+         }
+        }
+
+        $('setupBtn').addEventListener('click',()=>{
+         const auth=JSON.parse(localStorage.getItem('atendoAuth')||'null');
+         const name=$('teacherName').value.trim();
+         const password=$('teacherPassword').value;
+
+         if(!auth){
+           if(!name||!password) return;
+           const school = $('schoolName').value.trim();
+           localStorage.setItem('atendoAuth',JSON.stringify({name,password,school}));
+           $('setupOverlay').style.display='none';
+         }else{
+           if(password!==auth.password) return alert('Wrong password');
+           $('setupOverlay').style.display='none';
+         }
+        });
+
+        initializeAuth();
+
+        // On initial load: show only sidebar (hide main)
+        $('mainGrid').classList.add('hide-main');
+
+        $('btnSettings').addEventListener('click',()=>{
+         const auth=JSON.parse(localStorage.getItem('atendoAuth')||'{}');
+         $('teacherInfo').textContent='Teacher: '+(auth.name||'Unknown') + (auth.school ? ' • Institution: '+auth.school : '');
+         $('teacherNameEdit').value=(auth.name||'');
+         $('schoolNameEdit').value=(auth.school||'');
+         $('mainGrid').classList.remove('hide-main');
+         show('settingsScreen');
+        });
+
+        $('changePasswordBtn').addEventListener('click',()=>{
+         const auth=JSON.parse(localStorage.getItem('atendoAuth')||'{}');
+         const newPass=prompt('Enter new password');
+         if(!newPass) return;
+         auth.password=newPass;
+         localStorage.setItem('atendoAuth',JSON.stringify(auth));
+         alert('Password changed');
+        });
+
+// Save teacher name
+$('saveTeacherNameBtn')?.addEventListener('click',()=>{
+ const auth = JSON.parse(localStorage.getItem('atendoAuth') || '{}');
+ const newName = $('teacherNameEdit').value.trim();
+ if(!newName) return alert('Enter teacher name');
+ auth.name = newName;
+ auth.school = $('schoolNameEdit').value.trim();
+ localStorage.setItem('atendoAuth', JSON.stringify(auth));
+ $('teacherInfo').textContent = 'Teacher: ' + newName + (auth.school ? ' • Institution: ' + auth.school : '');
+ document.getElementById('schoolTitle').textContent = auth.school || '';
+ alert('Profile saved');
+});
+
+// Dark mode
+$('darkModeBtn')?.addEventListener('click',()=>{
+ document.body.classList.toggle('dark');
+ localStorage.setItem('atendoDarkMode', document.body.classList.contains('dark'));
+});
+
+// Restore dark mode on load
+if(localStorage.getItem('atendoDarkMode') === 'true'){
+ document.body.classList.add('dark');
+}
+
+// Backup data
+$('backupBtn')?.addEventListener('click',()=>{
+ const backup = {
+  classes: state.classes,
+  notices: state.notices,
+  auth: JSON.parse(localStorage.getItem('atendoAuth') || '{}'),
+  absentTemplate: localStorage.getItem('absentTemplate') || ''
+ };
+
+ const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+ const a = document.createElement('a');
+ a.href = URL.createObjectURL(blob);
+ a.download = 'atendo-backup.json';
+ a.click();
+ URL.revokeObjectURL(a.href);
+});
+
+// Restore backup
+$('restoreFile')?.addEventListener('change',(e)=>{
+ const file = e.target.files[0];
+ if(!file) return;
+ const reader = new FileReader();
+ reader.onload = (ev)=>{
+  try{
+   const data = JSON.parse(ev.target.result);
+   if(data.timetable){
+    localStorage.setItem('atendoTimetable', JSON.stringify(data.timetable));
+   }
+   if(data.classes) state.classes = data.classes;
+   if(data.notices) state.notices = data.notices;
+   if(data.auth) localStorage.setItem('atendoAuth', JSON.stringify(data.auth));
+   if(data.absentTemplate) localStorage.setItem('absentTemplate', data.absentTemplate);
+
+   saveState();
+   renderClasses();
+   alert('Backup restored successfully');
+  }catch(err){
+   alert('Invalid backup file');
+  }
+ };
+ reader.readAsText(file);
+});
+
+        $('settingsExit').addEventListener('click',()=>{
+         backToClasses();
+        });
+
+        // Report search
+        $('reportSearch').addEventListener('input',e=>{
+         const q=e.target.value.toLowerCase().trim();
+         document.querySelectorAll('#attendanceReportList > div').forEach(card=>{
+          card.style.display=card.textContent.toLowerCase().includes(q)?'block':'none';
+         });
+         document.querySelectorAll('#assignmentReportList > div').forEach(card=>{
+          card.style.display=card.textContent.toLowerCase().includes(q)?'block':'none';
+         });
+        })
+
+        // Attendance search by Name or Roll Number
+        $('attendanceSearch')?.addEventListener('input',e=>{
+         const q = e.target.value.toLowerCase().trim();
+
+         document.querySelectorAll('#attendanceTable tbody tr').forEach(row=>{
+          row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+         });
+
+         document.querySelectorAll('#attendanceGrid .att-grid-cell').forEach(cell=>{
+          cell.style.display = cell.textContent.toLowerCase().includes(q) ? '' : 'none';
+         });
+        });
+
+        // XLSX upload with SheetJS
+        $('processUpload').addEventListener('click',()=>{
+            const f = $('xlsxUpload').files[0];
+            if(!f) return alert('Choose an Excel file (.xlsx or .xls)');
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type:'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    
+                    let added = 0;
+                    rows.forEach(row => {
+                        // Expect columns: Name (or Student), Roll (or RollNo)
+                        const name = row.Name || row.Student || row.name || row.student || '';
+                        const roll = row.Roll || row.RollNo || row.roll || row.rollno || '';
+                        const phone = (row.Phone || row.phone || row.Mobile || row.mobile || '').toString().trim();
+
+                        if(name && name.trim()){
+                            state.activeClass.students.push({
+                                id: 's'+Date.now()+Math.random(),
+                                name: name.trim(),
+                                roll: roll ? roll.toString().trim() : '',
+                                phone: phone,
+                                attendance: [],
+                                assignments: {},
+                                gridStatus:'',
+                                gridLocked:false,
+                            });
+                            added++;
+                        }
+                    });
+                    saveState();
+                    alert(`Imported ${added} students successfully!`);
+                    $('xlsxUpload').value = '';
+                    renderClasses();
+                    show('addStudent');
+                } catch(err) {
+                    alert('Error parsing file: '+err.message);
+                }
+            };
+            reader.readAsArrayBuffer(f);
+        })
+
+        const templateBox = document.getElementById('absentTemplate');
+
+if(templateBox){
+    templateBox.value =
+        localStorage.getItem('absentTemplate') ||
+`Dear Parent,
+
+{student} was absent today.
+
+Class: {class}
+Date: {date} 
+
+Regards,
+{teacher}`;
+}
+
+document.getElementById('saveTemplateBtn')?.addEventListener('click',()=>{
+    localStorage.setItem(
+        'absentTemplate',
+        document.getElementById('absentTemplate').value
+    );
+    alert('WhatsApp template saved');
+});
+
+// Priority notice
+const priorityBanner = document.getElementById('priorityNoticeBanner');
+const savedPriority = localStorage.getItem('priorityNotice');
+if(savedPriority && priorityBanner){
+ priorityBanner.innerHTML = `<div style="padding:10px;border-radius:10px;background:#fef3c7"><strong>Priority Notice:</strong><br>${savedPriority}</div>`;
+}
+
+document.getElementById('publishPriorityNotice')?.addEventListener('click',()=>{
+ const txt = document.getElementById('noticeText').value.trim();
+ if(!txt) return alert('Write notice');
+ localStorage.setItem('priorityNotice',txt);
+ alert('Priority notice published');
+});
+
+// Timetable
+let timetable = JSON.parse(localStorage.getItem('atendoTimetable')||'[["Time","Mon","Tue","Wed","Thu","Fri"]]');
+
+function renderTimetable(){
+ const box=document.getElementById('timetableContainer');
+ if(!box) return;
+ let html='<table style="width:100%;border-collapse:collapse">';
+ timetable.forEach((row,r)=>{
+  html+='<tr>';
+  row.forEach((cell,c)=>{
+   html+=`<td><input data-r="${r}" data-c="${c}" value="${cell||''}" style="width:100%;padding:8px"></td>`;
+  });
+  html+='</tr>';
+ });
+ html+='</table>';
+ box.innerHTML=html;
+
+ box.querySelectorAll('input').forEach(inp=>{
+  inp.onchange=()=>{
+   timetable[inp.dataset.r][inp.dataset.c]=inp.value;
+  };
+ });
+}
+
+document.getElementById('openTimetableBtn')?.addEventListener('click',()=>{
+ show('timetableScreen');
+ renderTimetable();
+});
+
+document.getElementById('addTimeRow')?.addEventListener('click',()=>{
+ timetable.push(new Array(timetable[0].length).fill(''));
+ renderTimetable();
+});
+
+document.getElementById('addTimeCol')?.addEventListener('click',()=>{
+ timetable.forEach(r=>r.push(''));
+ renderTimetable();
+});
+
+document.getElementById('deleteTimeRow')?.addEventListener('click',()=>{
+ if(timetable.length <= 1){
+  return alert('Cannot delete the last row');
+ }
+ timetable.pop();
+ renderTimetable();
+});
+
+document.getElementById('deleteTimeCol')?.addEventListener('click',()=>{
+ if(!timetable[0] || timetable[0].length <= 1){
+  return alert('Cannot delete the last column');
+ }
+ timetable.forEach(r=>r.pop());
+ renderTimetable();
+});
+
+document.getElementById('saveTimetable')?.addEventListener('click',()=>{
+ localStorage.setItem('atendoTimetable',JSON.stringify(timetable));
+ alert('Timetable saved');
+});
+
+document.getElementById('timetableExit')?.addEventListener('click',()=>show('settingsScreen'));
+
+document.getElementById('shareNoticeGroup')?.addEventListener('click',async()=>{
+
+    const txt = document.getElementById('noticeText').value.trim();
+
+    if(!txt) return alert('Write a notice first');
+
+    if(!state.activeClass)
+        return alert('Select a class first');
+
+    const groupLink = state.activeClass.whatsappGroup;
+
+    if(!groupLink)
+        return alert('No WhatsApp group link saved for this class');
+
+    try{
+        await navigator.clipboard.writeText(txt);
+    }catch(err){
+        console.log(err);
+    }
+
+    window.open(groupLink,'_blank');
+
+    alert('✅ Notice copied to clipboard. Open WhatsApp group and paste.');
+});
+
+    </script>
+</body>
+</html>

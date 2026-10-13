@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>J.A.R.V.I.S. — AI Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+<div class="vignette"></div>
+
+<!-- ================= BOOT SCREEN ================= -->
+<div id="boot-screen">
+  <div class="boot-core-wrap">
+    <div class="boot-ring r1"></div>
+    <div class="boot-ring r2"></div>
+    <div class="boot-ring r3"></div>
+    <div class="boot-core-center"></div>
+  </div>
+  <div style="text-align:center;">
+    <div class="boot-title">J.A.R.V.I.S.</div>
+    <div class="boot-sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+  </div>
+  <div id="boot-log" class="mono"></div>
+  <div class="boot-progress-track"><div class="boot-progress-fill" id="boot-progress"></div></div>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app">
+
+  <div id="topbar" class="glass" style="border-radius:0;">
+    <div class="brand"><span class="dot"></span> J.A.R.V.I.S. <span style="color:var(--text-dim); font-weight:400; font-size:11px;">OS v2.0</span></div>
+    <div class="center-clock"><span id="clock-time">00:00:00</span><span class="date" id="clock-date">—</span></div>
+    <div class="status-pills">
+      <div class="pill" id="pill-net"><span class="ico"></span><span>Net</span></div>
+      <div class="pill" id="pill-gemini"><span class="ico"></span><span>Gemini</span></div>
+      <div class="pill" id="pill-mic"><span class="ico"></span><span>Mic</span></div>
+      <div class="pill" id="pill-cam"><span class="ico"></span><span>Cam</span></div>
+      <div class="pill" id="pill-batt"><span class="ico"></span><span id="batt-text">--%</span></div>
+    </div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div class="panel-card glass glow-border">
+      <h3>⚙ SYSTEM VITALS</h3>
+      <div class="metric-row"><span>CPU LOAD</span><b id="cpu-val">--%</b></div>
+      <div class="bar-track"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
+      <div class="metric-row" style="margin-top:10px;"><span>MEMORY</span><b id="ram-val">--%</b></div>
+      <div class="bar-track"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
+      <div class="metric-row" style="margin-top:10px;"><span>FPS</span><b id="fps-val">60</b></div>
+      <div class="bar-track"><div class="bar-fill" id="fps-bar" style="width:100%"></div></div>
+    </div>
+
+    <div class="panel-card glass glow-border">
+      <h3>🌦 WEATHER</h3>
+      <div class="weather-hero">
+        <div class="temp" id="weather-temp">24°</div>
+        <div class="desc" id="weather-desc">Partly Cloudy • Surat</div>
+      </div>
+    </div>
+
+    <div class="panel-card glass glow-border">
+      <h3>📜 RECENT COMMANDS</h3>
+      <div id="recent-commands" style="font-size:11px; color:var(--text-dim); display:flex; flex-direction:column; gap:6px;">
+        <div class="empty-hint" style="padding:6px 0;">No commands yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <div class="panel-card glass glow-border">
+      <h3>⚡ QUICK ACTIONS</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button class="btn" data-open="chat">💬 Chat</button>
+        <button class="btn" data-open="terminal">⌨ Terminal</button>
+        <button class="btn" data-open="camera">📷 Gesture</button>
+        <button class="btn" data-open="code">🧑‍💻 Code</button>
+        <button class="btn" data-open="notes">📝 Notes</button>
+        <button class="btn" data-open="calculator">🧮 Calc</button>
+        <button class="btn" data-open="settings">⚙ Settings</button>
+        <button class="btn" data-open="music">🎵 Music</button>
+      </div>
+    </div>
+
+    <div class="panel-card glass glow-border">
+      <h3>🔔 NOTIFICATIONS</h3>
+      <div id="notif-center" style="font-size:11px; color:var(--text-dim); display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto;">
+        <div class="empty-hint" style="padding:6px 0;">All clear, Commander.</div>
+      </div>
+    </div>
+
+    <div class="panel-card glass glow-border">
+      <h3>🖐 GESTURE STATUS</h3>
+      <div class="mini-stat"><span>Detected</span><b id="gesture-name">None</b></div>
+      <div class="mini-stat"><span>Confidence</span><b id="gesture-conf-txt">0%</b></div>
+      <div class="mini-stat"><span>Camera</span><b id="gesture-cam-status">Off</b></div>
+    </div>
+  </div>
+
+  <!-- CENTER STAGE -->
+  <div id="center-stage">
+    <div id="core-wrap">
+      <svg class="core-svg" viewBox="0 0 300 300" id="core-svg">
+        <defs>
+          <radialGradient id="coreGrad" cx="50%" cy="45%" r="60%">
+            <stop offset="0%" stop-color="#e8feff"/>
+            <stop offset="35%" stop-color="var(--accent)"/>
+            <stop offset="100%" stop-color="var(--accent2)"/>
+          </radialGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle class="core-ring" id="ring1" cx="150" cy="150" r="140" stroke="var(--accent)" filter="url(#glow)"/>
+        <circle class="core-ring" id="ring2" cx="150" cy="150" r="115" stroke="var(--accent2)" stroke-dasharray="6 10"/>
+        <circle class="core-ring" id="ring3" cx="150" cy="150" r="95" stroke="var(--accent3)" stroke-dasharray="2 6"/>
+        <circle id="core-center" cx="150" cy="150" r="46" fill="url(#coreGrad)" filter="url(#glow)"/>
+      </svg>
+    </div>
+    <div id="ai-status-text">SYSTEM IDLE</div>
+    <div id="ai-status-sub">Say "Hey Jarvis" or type a command</div>
+  </div>
+
+  <!-- Voice wave -->
+  <div id="voice-wave"></div>
+
+  <!-- Command bar -->
+  <div id="command-bar" class="glass glow-border">
+    <span style="opacity:.6;">🔍</span>
+    <input id="command-input" type="text" placeholder="Ask Jarvis anything, or type a command..." />
+    <button id="mic-btn" title="Voice input (Ctrl+Space)">🎤</button>
+  </div>
+
+  <!-- Dock -->
+  <div id="dock" class="glass glow-border">
+    <div class="dock-btn" data-open="chat" data-label="AI Chat">💬</div>
+    <div class="dock-btn" data-open="camera" data-label="Camera/Gesture">📷</div>
+    <div class="dock-btn" data-open="calculator" data-label="Calculator">🧮</div>
+    <div class="dock-btn" data-open="notes" data-label="Notes">📝</div>
+    <div class="dock-btn" data-open="terminal" data-label="Terminal">⌨</div>
+    <div class="dock-btn" data-open="code" data-label="Code Workspace">🧑‍💻</div>
+    <div class="dock-btn" data-open="music" data-label="Music Player">🎵</div>
+    <div class="dock-btn" data-open="todo" data-label="To-Do List">✅</div>
+    <div class="dock-btn" data-open="settings" data-label="Settings">⚙</div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toast-stack"></div>
+
+  <!-- Windows layer -->
+  <div id="windows-layer"></div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -17,9 +17,10 @@ A collection of games, apps and UI experiments built with plain HTML, CSS and Ja
 
 | Project | What it does |
 |---|---|
+| [J.A.R.V.I.S.](apps/jarvis/index.html) | Sci-fi AI desktop with voice control, hand gestures and Gemini chat (run `server.py` for camera and mic) |
 | [Money Tracker](money_tracker.html) | Track income and spending |
 | [WhatToScan (OCR)](apps/ocr-scanner/index.html) | Reads text from images using Tesseract.js |
-| [Atendo](apps/atendo.html) | Add students, take attendance, view history |
+| [Atendo](apps/atendo/index.html) | Add students, take attendance, view history |
 | [Weather](apps/weather/index.html) | Live weather by city (needs an API key, see below) |
 | [100 Year Clock Wheel](apps/100-year-clock/index.html) | Visualises a lifetime as a clock |
 | [Business Card Creator](apps/business-card-creator.html) | Design an interactive business card |
