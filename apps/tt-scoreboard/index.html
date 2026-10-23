@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT Scoreboard</title>
+<style>
+  :root {
+    --bg:#0f172a; --surface:#1e293b; --surface2:#273449; --border:#334155;
+    --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; --accent-text:#0f172a;
+    --p0:#f97316; --p1:#22c55e; --gold:#facc15; --silver:#cbd5e1; --bronze:#d97706;
+    --danger:#ef4444; --ok:#22c55e; --radius:14px;
+    color-scheme:dark;
+  }
+  :root[data-theme="light"] {
+    --bg:#f1f5f9; --surface:#ffffff; --surface2:#e2e8f0; --border:#cbd5e1;
+    --text:#0f172a; --muted:#475569; --accent:#0284c7; --accent-text:#ffffff;
+    --p0:#ea580c; --p1:#16a34a; --gold:#ca8a04; --silver:#64748b; --bronze:#b45309;
+    --danger:#dc2626; --ok:#16a34a;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+      --bg:#f1f5f9; --surface:#ffffff; --surface2:#e2e8f0; --border:#cbd5e1;
+      --text:#0f172a; --muted:#475569; --accent:#0284c7; --accent-text:#ffffff;
+      --p0:#ea580c; --p1:#16a34a; --gold:#ca8a04; --silver:#64748b; --bronze:#b45309;
+      --danger:#dc2626; --ok:#16a34a;
+      color-scheme:light;
+    }
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; overflow-x:hidden; }
+  body { font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); line-height:1.45; }
+  a { color:var(--accent); }
+  header.top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; max-width:1100px; margin:0 auto; padding:20px 16px 8px; }
+  header.top h1 { margin:0; font-size:clamp(22px,4vw,30px); }
+  header.top h1 span { color:var(--accent); }
+  .top-actions { display:flex; gap:8px; align-items:center; }
+  nav.tabs { max-width:1100px; margin:0 auto; padding:8px 16px; display:flex; gap:6px; overflow-x:auto; }
+  nav.tabs button { flex:0 0 auto; }
+  nav.tabs button[aria-selected="true"] { background:var(--accent); color:var(--accent-text); border-color:var(--accent); }
+  main { max-width:1100px; margin:0 auto; padding:8px 16px 64px; }
+  section.view { display:none; }
+  section.view.active { display:block; }
+  h2 { font-size:20px; margin:20px 0 10px; }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+  .muted { color:var(--muted); }
+  .small { font-size:13px; }
+  button, .btn { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--text); padding:8px 14px; }
+  button:hover:not(:disabled) { border-color:var(--accent); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  button.primary { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+  button.danger { color:var(--danger); }
+  button.icon { padding:6px 10px; }
+  input, select, textarea { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:8px 10px; width:100%; min-width:0; }
+  input:focus, select:focus, textarea:focus, button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  label.field { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+  label.check { display:flex; gap:8px; align-items:center; cursor:pointer; }
+  label.check input { width:auto; }
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .spacer { flex:1; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:8px 6px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr.hl td { background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .empty { text-align:center; color:var(--muted); padding:24px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; background:var(--surface2); color:var(--muted); }
+  .pill.live { background:color-mix(in srgb, var(--ok) 20%, transparent); color:var(--ok); }
+  .pill.done { background:color-mix(in srgb, var(--gold) 20%, transparent); color:var(--gold); }
+
+  /* Scoreboard */
+  #board-wrap { background:var(--bg); }
+  #board-wrap:fullscreen { padding:24px; display:flex; flex-direction:column; justify-content:center; }
+  .context { margin-bottom:10px; }
+  .board { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .panel { position:relative; background:var(--surface); border:2px solid var(--border); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; }
+  .panel.p0 { border-top:6px solid var(--p0); }
+  .panel.p1 { border-top:6px solid var(--p1); }
+  .panel.serving { box-shadow:0 0 0 2px var(--accent) inset; }
+  .pname { font-size:clamp(16px,3.4vw,26px); font-weight:700; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .serve-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--accent); font-weight:600; min-height:18px; }
+  .serve-badge::before { content:""; width:12px; height:12px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px var(--accent); }
+  .serve-badge.off { visibility:hidden; }
+  .games-won { color:var(--muted); font-size:14px; }
+  .games-won b { color:var(--text); font-size:22px; margin-left:4px; }
+  button.big { width:100%; font-size:clamp(72px,18vw,170px); font-weight:800; line-height:1.05; padding:8px 0; background:var(--surface2); border:none; font-variant-numeric:tabular-nums; border-radius:12px; user-select:none; touch-action:manipulation; }
+  .panel.p0 button.big { color:var(--p0); }
+  .panel.p1 button.big { color:var(--p1); }
+  #board-wrap:fullscreen button.big { font-size:min(30vh,22vw); }
+  .panel .row { justify-content:center; }
+  .status { text-align:center; min-height:32px; font-weight:700; font-size:18px; margin:10px 0 4px; color:var(--gold); }
+  .strip { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:6px 0; }
+  .strip span { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:14px; font-variant-numeric:tabular-nums; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:10px; }
+  .clock { text-align:center; color:var(--muted); font-variant-numeric:tabular-nums; font-size:14px; }
+  .kbd { font-family:ui-monospace,monospace; font-size:12px; border:1px solid var(--border); border-radius:5px; padding:1px 5px; background:var(--surface2); }
+
+  /* Tournaments */
+  .t-layout { display:grid; grid-template-columns:260px 1fr; gap:16px; align-items:start; }
+  .t-list { display:flex; flex-direction:column; gap:8px; }
+  .t-item { text-align:left; width:100%; display:flex; flex-direction:column; gap:2px; }
+  .t-item.active { border-color:var(--accent); }
+  .names-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:12px; }
+  .fixture { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .fixture:last-child { border-bottom:none; }
+  .fixture .who { flex:1 1 220px; min-width:0; }
+  .fixture .who b { color:var(--ok); }
+  .fixture.next { background:color-mix(in srgb, var(--accent) 8%, transparent); border-radius:8px; padding-left:8px; padding-right:8px; }
+  .podium { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; text-align:center; }
+  .podium div { background:var(--surface2); border-radius:12px; padding:12px 18px; min-width:120px; }
+  .podium .medal { font-size:30px; display:block; }
+
+  /* Winners */
+  .winner-list { display:flex; flex-direction:column; gap:8px; }
+  .winner { display:flex; gap:12px; align-items:center; background:var(--surface2); border-radius:12px; padding:10px 12px; }
+  .winner .trophy { font-size:26px; }
+  .winner .info { flex:1; min-width:0; }
+  .winner .info strong { display:block; overflow:hidden; text-overflow:ellipsis; }
+
+  dialog { border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); padding:20px; width:min(520px, calc(100vw - 32px)); }
+  dialog::backdrop { background:rgba(2,6,23,.6); }
+  dialog h2 { margin-top:0; }
+  .result-grid { display:grid; grid-template-columns:auto 1fr 1fr; gap:8px; align-items:center; }
+  .result-grid .hdr { font-weight:600; font-size:13px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .error { color:var(--danger); min-height:20px; font-size:14px; margin-top:8px; }
+  .big-timer { font-size:72px; font-weight:800; text-align:center; font-variant-numeric:tabular-nums; }
+  .cam-view { position:relative; background:#000; border-radius:12px; overflow:hidden; margin:10px 0; }
+  .cam-view video { width:100%; display:block; }
+  .cam-view canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .cam-banner { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; min-height:40px; font-weight:700; margin-bottom:10px; }
+  #toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:10px 16px; border-radius:10px; opacity:0; transition:opacity .2s; pointer-events:none; max-width:calc(100vw - 32px); z-index:50; }
+  #toast.show { opacity:1; }
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:40; }
+
+  @media (max-width:760px) {
+    .t-layout { grid-template-columns:1fr; }
+    .board { gap:8px; }
+    .panel { padding:10px 8px; }
+    .panel .row button { padding:6px 8px; font-size:13px; }
+  }
+  @media print {
+    header.top, nav.tabs, .no-print, button { display:none !important; }
+    body { background:#fff; color:#000; }
+    .card { border:none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>🏓 TT <span>Scoreboard</span></h1>
+  <div class="top-actions">
+    <a href="../../index.html" class="small">← All projects</a>
+    <button id="theme-btn" class="icon" title="Switch theme" aria-label="Switch theme">🌓</button>
+  </div>
+</header>
+<nav class="tabs" role="tablist">
+  <button role="tab" data-view="score" aria-selected="true">Scoreboard</button>
+  <button role="tab" data-view="tournaments" aria-selected="false">Tournaments</button>
+  <button role="tab" data-view="winners" aria-selected="false">Winners</button>
+  <button role="tab" data-view="stats" aria-selected="false">Leaderboard &amp; History</button>
+  <button role="tab" data-view="settings" aria-selected="false">Settings</button>
+</nav>
+
+<main>
+  <!-- SCOREBOARD -->
+  <section class="view active" id="view-score">
+    <details class="card no-print" id="setup" open>
+      <summary><strong>New match</strong></summary>
+      <form id="setup-form" class="form-grid" style="margin-top:12px">
+        <label class="field">Player 1<input name="p1" list="roster" required maxlength="30" placeholder="e.g. Mahir"></label>
+        <label class="field">Player 2<input name="p2" list="roster" required maxlength="30" placeholder="e.g. Alex"></label>
+        <label class="field">Best of
+          <select name="bestOf"><option>1</option><option>3</option><option>5</option><option>7</option></select>
+        </label>
+        <label class="field">Points per game
+          <select name="pointsTo"><option>11</option><option>15</option><option>21</option></select>
+        </label>
+        <label class="field">First to serve
+          <select name="first"><option value="0">Player 1</option><option value="1">Player 2</option><option value="r">Coin toss 🎲</option></select>
+        </label>
+        <button class="primary" type="submit">Start match</button>
+      </form>
+    </details>
+
+    <div id="board-wrap">
+      <div id="context" class="context"></div>
+      <div id="board"></div>
+      <div id="cam" class="card no-print" style="margin-top:12px" hidden>
+        <div class="row"><strong>📷 Camera auto scoring (beta)</strong><span class="spacer"></span><button id="cam-close">Stop camera</button></div>
+        <p class="small muted" style="margin-bottom:0">Point the camera at the table from the side so the net runs top to bottom in the picture, then drag the net slider onto the net.
+          When the ball stops moving, the player on the side where it was last seen loses the rally. Each call waits 3 seconds so you can cancel it.</p>
+        <div class="cam-view"><video id="cam-video" playsinline muted></video><canvas id="cam-canvas" width="640" height="360"></canvas></div>
+        <div class="cam-banner" id="cam-banner" aria-live="polite"></div>
+        <div class="form-grid">
+          <label class="field">Ball colour<select id="cam-color"><option value="white">White</option><option value="orange">Orange</option></select></label>
+          <label class="field">Net position<input type="range" id="cam-net" min="15" max="85" value="50"></label>
+          <label class="field">Sensitivity<input type="range" id="cam-sens" min="1" max="10" value="5"></label>
+          <label class="check"><input type="checkbox" id="cam-flip"> Camera shows the sides flipped</label>
+        </div>
+      </div>
+    </div>
+    <p class="muted small no-print" style="text-align:center;margin-top:16px">
+      Tap a score to add a point. Keys: <span class="kbd">A</span>/<span class="kbd">←</span> left point,
+      <span class="kbd">L</span>/<span class="kbd">→</span> right point, <span class="kbd">Z</span> undo,
+      <span class="kbd">S</span> swap ends, <span class="kbd">F</span> fullscreen.
+    </p>
+  </section>
+
+  <!-- TOURNAMENTS -->
+  <section class="view" id="view-tournaments">
+    <div class="card">
+      <h2 style="margin-top:0">Create a tournament</h2>
+      <form id="t-form">
+        <div class="form-grid">
+          <label class="field">Tournament name<input name="name" required maxlength="40" placeholder="Friday Cup"></label>
+          <label class="field">Players
+            <select name="count"><option value="3">3 players</option><option value="4" selected>4 players</option><option value="5">5 players</option></select>
+          </label>
+          <label class="field">Format
+            <select name="format">
+              <option value="rr">Round robin (top of table wins)</option>
+              <option value="final">Round robin + Final (top 2)</option>
+              <option value="final3">Round robin + Final + 3rd place</option>
+            </select>
+          </label>
+          <label class="field">Best of
+            <select name="bestOf"><option>1</option><option selected>3</option><option>5</option><option>7</option></select>
+          </label>
+          <label class="field">Points per game
+            <select name="pointsTo"><option>11</option><option>15</option><option>21</option></select>
+          </label>
+        </div>
+        <div class="names-grid" id="t-names"></div>
+        <div class="row" style="margin-top:12px">
+          <button type="button" id="t-shuffle">🔀 Shuffle order</button>
+          <span class="spacer"></span>
+          <button class="primary" type="submit">Create tournament</button>
+        </div>
+        <p class="muted small" style="margin-bottom:0">Everyone plays everyone once. With 3 or 5 players one player sits out (bye) each round. Win = 2 pts, loss = 1 pt. Ties are split by head-to-head, then game difference, then point difference.</p>
+      </form>
+    </div>
+    <div class="t-layout">
+      <div>
+        <h3 style="margin-top:0">Your tournaments</h3>
+        <div class="t-list" id="t-list"></div>
+      </div>
+      <div id="t-detail"></div>
+    </div>
+  </section>
+
+  <!-- WINNERS -->
+  <section class="view" id="view-winners">
+    <div class="card">
+      <h2 style="margin-top:0">Add a winner</h2>
+      <form id="w-form" class="form-grid">
+        <label class="field">Winner<input name="name" list="roster" required maxlength="30"></label>
+        <label class="field">Title / event<input name="title" required maxlength="50" placeholder="School championship"></label>
+        <label class="field">Date<input name="date" type="date" required></label>
+        <label class="field">Note (optional)<input name="note" maxlength="80" placeholder="Beat Alex 3–2 in the final"></label>
+        <button class="primary" type="submit">🏆 Add winner</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Most titles</h2>
+      <div id="w-titles"></div>
+    </div>
+    <div class="card">
+      <div class="row"><h2 style="margin:0">Hall of fame</h2><span class="spacer"></span>
+        <input id="w-search" type="search" placeholder="Search winners" style="max-width:220px"></div>
+      <div class="winner-list" id="w-list" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="view" id="view-stats">
+    <div class="card">
+      <h2 style="margin-top:0">Leaderboard</h2>
+      <div class="table-wrap" id="leaderboard"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Head to head</h2>
+      <div class="form-grid">
+        <label class="field">Player<select id="h2h-a"></select></label>
+        <label class="field">Opponent<select id="h2h-b"></select></label>
+      </div>
+      <div id="h2h-out" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <div class="row"><h2 style="margin:0">Match history</h2><span class="spacer"></span>
+        <input id="m-search" type="search" placeholder="Filter by player" style="max-width:200px">
+        <button id="m-add">+ Add past match</button></div>
+      <div class="table-wrap" id="history" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings">
+    <div class="card">
+      <h2 style="margin-top:0">Match defaults</h2>
+      <div class="form-grid" id="settings-form">
+        <label class="field">Default best of
+          <select data-setting="bestOf"><option>1</option><option>3</option><option>5</option><option>7</option></select></label>
+        <label class="field">Default points per game
+          <select data-setting="pointsTo"><option>11</option><option>15</option><option>21</option></select></label>
+        <label class="field">Theme
+          <select data-setting="theme"><option value="auto">Match system</option><option value="dark">Dark</option><option value="light">Light</option></select></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+        <label class="check"><input type="checkbox" data-setting="sound"> Beep on every point</label>
+        <label class="check"><input type="checkbox" data-setting="voice"> Umpire voice calls the score (server's score first)</label>
+        <label class="check"><input type="checkbox" data-setting="autoSwap"> Swap ends after each game and at 5 points in the deciding game</label>
+        <label class="check"><input type="checkbox" data-setting="autoWinners"> Add every friendly match winner to the Winners list</label>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Players</h2>
+      <form id="pl-form" class="row">
+        <input name="name" list="roster" maxlength="30" placeholder="Add a player" style="max-width:260px" required>
+        <button type="submit">Add</button>
+      </form>
+      <div class="row" id="pl-list" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">Your data</h2>
+      <p class="muted small">Everything is saved in this browser only. Export a backup to move it to another device.</p>
+      <div class="row">
+        <button id="export">⬇ Export backup</button>
+        <button id="import">⬆ Import backup</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+        <span class="spacer"></span>
+        <button id="reset" class="danger">Delete all data</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<datalist id="roster"></datalist>
+
+<dialog id="dlg-finish">
+  <h2 id="finish-title">Match over</h2>
+  <p id="finish-body"></p>
+  <div class="row">
+    <button id="finish-undo">↶ Undo last point</button>
+    <span class="spacer"></span>
+    <button id="finish-save" class="primary">Save result</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-result">
+  <form method="dialog" id="result-form">
+    <h2 id="result-title">Enter result</h2>
+    <div id="result-names" class="form-grid" style="margin-bottom:12px"></div>
+    <div class="result-grid" id="result-grid"></div>
+    <div class="error" id="result-error"></div>
+    <div class="row" style="margin-top:8px">
+      <button type="button" id="result-cancel">Cancel</button>
+      <span class="spacer"></span>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-timeout">
+  <h2 id="timeout-title">Timeout</h2>
+  <div class="big-timer" id="timeout-clock">60</div>
+  <div class="row"><span class="spacer"></span><button id="timeout-end" class="primary">Resume play</button></div>
+</dialog>
+
+<dialog id="dlg-cam">
+  <h2>📷 Camera not available</h2>
+  <p><strong id="cam-help-problem"></strong></p>
+  <p id="cam-help-fix"></p>
+  <p class="small muted">You can still score by tapping the numbers or using the keyboard.</p>
+  <form method="dialog" class="row"><span class="spacer"></span><button class="primary">OK</button></form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+(() => {
+  'use strict';
+  const LS_KEY = 'tt-scoreboard-v1';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const need = bestOf => Math.ceil(bestOf / 2);
+  const today = () => new Date().toISOString().slice(0, 10);
+  const fmtDate = ts => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  const fmtTime = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+  // ---------- Storage ----------
+  const defaults = () => ({
+    players: [], matches: [], winners: [], tournaments: [], live: null,
+    settings: { bestOf: 5, pointsTo: 11, sound: true, voice: false, autoSwap: true, autoWinners: false, theme: 'auto' }
+  });
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const d = JSON.parse(raw), def = defaults();
+        return { ...def, ...d, settings: { ...def.settings, ...(d.settings || {}) } };
+      }
+    } catch (e) { /* storage unavailable or corrupt */ }
+    return defaults();
+  }
+  let data = load();
+  function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ } }
+
+  // Reuse an existing player's spelling so "mahir" and "Mahir" count as one person.
+  function canonical(name) {
+    name = String(name || '').trim().replace(/\s+/g, ' ');
+    if (!name) return '';
+    const hit = data.players.find(p => p.toLowerCase() === name.toLowerCase());
+    if (hit) return hit;
+    data.players.push(name);
+    data.players.sort((a, b) => a.localeCompare(b));
+    return name;
+  }
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  // ---------- Sound, voice, confetti ----------
+  let audioCtx;
+  function beep(freq = 880, dur = 0.08) {
+    if (!data.settings.sound) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = freq; o.type = 'sine';
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) { /* no audio */ }
+  }
+  function say(text) {
+    if (!data.settings.voice || !('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  }
+  function confetti() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = $('#confetti'), ctx = c.getContext('2d');
+    c.width = innerWidth; c.height = innerHeight;
+    const colors = ['#f97316', '#22c55e', '#38bdf8', '#facc15', '#ec4899'];
+    const parts = Array.from({ length: 140 }, () => ({
+      x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.5,
+      vx: (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 4, r: 4 + Math.random() * 5,
+      a: Math.random() * Math.PI, va: (Math.random() - 0.5) * 0.3, col: colors[Math.floor(Math.random() * colors.length)]
+    }));
+    const end = performance.now() + 3000;
+    (function frame(now) {
+      ctx.clearRect(0, 0, c.width, c.height);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.a += p.va;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+        ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6); ctx.restore();
+      });
+      if (now < end) requestAnimationFrame(frame); else ctx.clearRect(0, 0, c.width, c.height);
+    })(performance.now());
+  }
+
+  // ---------- Rules ----------
+  function gameValid(x, y, pt) {
+    const hi = Math.max(x, y), lo = Math.min(x, y);
+    if (hi < pt) return false;
+    return hi === pt ? hi - lo >= 2 : hi - lo === 2;
+  }
+  function validateMatch(games, bestOf, pt) {
+    const n = need(bestOf), w = [0, 0];
+    for (let k = 0; k < games.length; k++) {
+      if (w[0] === n || w[1] === n) return { error: `Too many games: the match was already over after game ${k}.` };
+      const [x, y] = games[k];
+      if (!gameValid(x, y, pt)) return { error: `Game ${k + 1} (${x}–${y}) is not a valid score for games to ${pt} (win by 2).` };
+      w[x > y ? 0 : 1]++;
+    }
+    if (w[0] < n && w[1] < n) return { error: `Not finished: someone needs ${n} game${n > 1 ? 's' : ''} to win a best of ${bestOf}.` };
+    return { winner: w[0] === n ? 0 : 1, w };
+  }
+  const gamesWon = games => games.reduce((w, [x, y]) => (w[x > y ? 0 : 1]++, w), [0, 0]);
+  const gameList = games => games.map(([x, y]) => `${x}–${y}`).join(', ');
+
+  // ---------- Live match ----------
+  function newLive(p1, p2, opts) {
+    return {
+      p: [p1, p2], bestOf: opts.bestOf, pointsTo: opts.pointsTo, firstServer: opts.first,
+      score: [0, 0], games: [0, 0], gameScores: [], swapped: false, decidingSwapDone: false,
+      timeouts: [false, false], history: [], startedAt: Date.now(), finishedAt: null,
+      finished: false, ctx: opts.ctx || null
+    };
+  }
+  function snapshot(L) {
+    return JSON.stringify({ score: L.score, games: L.games, gameScores: L.gameScores, swapped: L.swapped, decidingSwapDone: L.decidingSwapDone, firstServer: L.firstServer });
+  }
+  function currentServer(L) {
+    const first = (L.firstServer + L.gameScores.length) % 2;
+    const t = L.score[0] + L.score[1];
+    const every = L.pointsTo === 21 ? 5 : 2;
+    const dl = L.pointsTo - 1;
+    const turns = (L.score[0] >= dl && L.score[1] >= dl) ? Math.floor(2 * dl / every) + (t - 2 * dl) : Math.floor(t / every);
+    return (first + turns) % 2;
+  }
+  const isDecider = L => L.games[0] === need(L.bestOf) - 1 && L.games[1] === need(L.bestOf) - 1;
+
+  function addPoint(i) {
+    const L = data.live;
+    if (!L || L.finished) return;
+    L.history.push(snapshot(L));
+    if (L.history.length > 400) L.history.shift();
+    L.score[i]++;
+    const [a, b] = L.score;
+    if (gameValid(a, b, L.pointsTo)) {
+      L.games[i]++;
+      L.gameScores.push([a, b]);
+      L.score = [0, 0];
+      if (L.games[i] === need(L.bestOf)) {
+        L.finished = true;
+        L.finishedAt = Date.now();
+        beep(523, 0.15); setTimeout(() => beep(784, 0.3), 160);
+        say(`Game and match, ${L.p[i]}. ${L.games[i]} games to ${L.games[1 - i]}`);
+        save(); renderBoard(); openFinish();
+        return;
+      }
+      if (data.settings.autoSwap) L.swapped = !L.swapped;
+      beep(660, 0.2);
+      const lead = L.games[0] === L.games[1] ? -1 : (L.games[0] > L.games[1] ? 0 : 1);
+      say(lead < 0 ? `Game, ${L.p[i]}. ${L.games[0]} games all` : `Game, ${L.p[i]}. ${L.p[lead]} leads ${L.games[lead]} games to ${L.games[1 - lead]}`);
+      toast(`Game to ${L.p[i]} (${a}–${b})`);
+    } else {
+      beep();
+      if (isDecider(L) && !L.decidingSwapDone && Math.max(a, b) === 5 && data.settings.autoSwap) {
+        L.decidingSwapDone = true;
+        L.swapped = !L.swapped;
+        toast('Deciding game: change ends!');
+      }
+      const s = currentServer(L);
+      const dl = L.pointsTo - 1;
+      say(a >= dl && b >= dl && a === b ? 'Deuce' : `${L.score[s]}, ${L.score[1 - s]}`);
+    }
+    save(); renderBoard();
+  }
+  function removePoint(i) {
+    const L = data.live;
+    if (!L || L.finished || L.score[i] === 0) return;
+    L.history.push(snapshot(L));
+    L.score[i]--;
+    save(); renderBoard();
+  }
+  function undo() {
+    const L = data.live;
+    if (!L || !L.history.length) return;
+    Object.assign(L, JSON.parse(L.history.pop()));
+    L.finished = false; L.finishedAt = null;
+    save(); renderBoard();
+  }
+  function swapEnds() {
+    if (!data.live) return;
+    data.live.swapped = !data.live.swapped;
+    save(); renderBoard();
+  }
+  function switchServer() {
+    const L = data.live;
+    if (!L || L.finished) return;
+    L.history.push(snapshot(L));
+    L.firstServer = 1 - L.firstServer;
+    save(); renderBoard();
+  }
+
+  function startMatch(p1, p2, opts) {
+    if (data.live && !data.live.finished && !confirm('A match is in progress. Abandon it and start a new one?')) return false;
+    p1 = canonical(p1); p2 = canonical(p2);
+    if (!p1 || !p2) { toast('Enter both player names'); return false; }
+    if (p1 === p2) { toast('Pick two different players'); return false; }
+    const first = opts.first === 'r' ? (Math.random() < 0.5 ? 0 : 1) : Number(opts.first) || 0;
+    data.live = newLive(p1, p2, { ...opts, first });
+    if (opts.first === 'r') toast(`Coin toss: ${data.live.p[first]} serves first`);
+    $('#setup').open = false;
+    save(); renderAll();
+    return true;
+  }
+
+  function matchSummary(m) {
+    const loser = m.winner === m.p1 ? m.p2 : m.p1;
+    const w = gamesWon(m.games);
+    return `${m.winner} beat ${loser} ${Math.max(...w)}–${Math.min(...w)} (${gameList(m.winner === m.p1 ? m.games : m.games.map(([x, y]) => [y, x]))})`;
+  }
+
+  function saveLiveResult() {
+    const L = data.live;
+    if (!L || !L.finished) return;
+    const winIdx = L.games[0] > L.games[1] ? 0 : 1;
+    const ctx = L.ctx;
+    const duration = (L.finishedAt || Date.now()) - L.startedAt;
+    if (ctx) {
+      const t = data.tournaments.find(x => x.id === ctx.tid);
+      const f = t && t.fixtures.find(x => x.id === ctx.fid);
+      if (f) setFixtureResult(t, f, L.gameScores, duration);
+    } else {
+      const m = { id: uid(), p1: L.p[0], p2: L.p[1], games: L.gameScores, winner: L.p[winIdx], bestOf: L.bestOf, pointsTo: L.pointsTo, date: Date.now(), duration };
+      data.matches.unshift(m);
+      if (data.settings.autoWinners) {
+        data.winners.unshift({ id: uid(), name: m.winner, title: `Match vs ${m.winner === m.p1 ? m.p2 : m.p1}`, date: today(), note: matchSummary(m), source: 'match', matchId: m.id });
+      }
+    }
+    // Pre-fill a rematch with the other player serving first.
+    const f = $('#setup-form');
+    f.p1.value = L.p[0]; f.p2.value = L.p[1];
+    f.bestOf.value = L.bestOf; f.pointsTo.value = L.pointsTo; f.first.value = String(1 - L.firstServer);
+    data.live = null;
+    save();
+    confetti();
+    toast(`${L.p[winIdx]} wins! Result saved.`);
+    $('#setup').open = true;
+    if (ctx) { selectedTid = ctx.tid; showView('tournaments'); }
+    renderAll();
+  }
+
+  function openFinish() {
+    const L = data.live;
+    const i = L.games[0] > L.games[1] ? 0 : 1;
+    $('#finish-title').textContent = `🏆 ${L.p[i]} wins!`;
+    $('#finish-body').textContent = `${L.p[i]} beat ${L.p[1 - i]} ${L.games[i]}–${L.games[1 - i]} (${gameList(i === 0 ? L.gameScores : L.gameScores.map(([x, y]) => [y, x]))}) in ${fmtTime(L.finishedAt - L.startedAt)}.`;
+    $('#dlg-finish').showModal();
+  }
+  $('#finish-undo').onclick = () => { $('#dlg-finish').close(); undo(); };
+  $('#finish-save').onclick = () => { $('#dlg-finish').close(); saveLiveResult(); };
+  $('#dlg-finish').addEventListener('cancel', e => e.preventDefault());
+
+  // Timeout (one 60-second timeout per player per match)
+  let timeoutTimer = null;
+  function startTimeout(i) {
+    const L = data.live;
+    if (!L || L.timeouts[i]) return;
+    L.timeouts[i] = true; save(); renderBoard();
+    let left = 60;
+    $('#timeout-title').textContent = `Timeout: ${L.p[i]}`;
+    $('#timeout-clock').textContent = left;
+    $('#dlg-timeout').showModal();
+    clearInterval(timeoutTimer);
+    timeoutTimer = setInterval(() => {
+      left--;
+      $('#timeout-clock').textContent = left;
+      if (left <= 0) { beep(440, 0.4); $('#dlg-timeout').close(); }
+    }, 1000);
+  }
+  $('#timeout-end').onclick = () => $('#dlg-timeout').close();
+  $('#dlg-timeout').addEventListener('close', () => clearInterval(timeoutTimer));
+
+  // ---------- Scoreboard rendering ----------
+  function renderBoard() {
+    const L = data.live, board = $('#board'), ctxEl = $('#context');
+    if (!L) {
+      if (cam.stream) stopCamera();
+      ctxEl.innerHTML = '';
+      board.innerHTML = `<div class="card empty">No match in progress. Set up a new match above, or play one from a <a href="#" data-goto="tournaments">tournament</a>.</div>`;
+      return;
+    }
+    if (L.ctx) {
+      const t = data.tournaments.find(x => x.id === L.ctx.tid);
+      const f = t && t.fixtures.find(x => x.id === L.ctx.fid);
+      ctxEl.innerHTML = t && f ? `<span class="pill live">${esc(t.name)} · ${esc(stageLabel(f))}</span>` : '';
+    } else ctxEl.innerHTML = '<span class="pill">Friendly match</span>';
+
+    const srv = L.finished ? -1 : currentServer(L);
+    const order = L.swapped ? [1, 0] : [0, 1];
+    const panels = order.map(i => `
+      <div class="panel p${i} ${srv === i ? 'serving' : ''}">
+        <div class="pname" title="${esc(L.p[i])}">${esc(L.p[i])}</div>
+        <div class="serve-badge ${srv === i ? '' : 'off'}">Serving</div>
+        <div class="games-won">Games<b>${L.games[i]}</b></div>
+        <button class="big" data-add="${i}" aria-label="Point to ${esc(L.p[i])}, now ${L.score[i]}" ${L.finished ? 'disabled' : ''}>${L.score[i]}</button>
+        <div class="row">
+          <button data-sub="${i}" aria-label="Remove a point from ${esc(L.p[i])}" ${L.finished || !L.score[i] ? 'disabled' : ''}>−1</button>
+          <button data-timeout="${i}" ${L.timeouts[i] || L.finished ? 'disabled' : ''}>⏱ Timeout</button>
+        </div>
+      </div>`).join('');
+
+    const strip = L.gameScores.map((g, k) => {
+      const w = g[0] > g[1] ? 0 : 1;
+      return `<span title="Won by ${esc(L.p[w])}">G${k + 1}: ${g[0]}–${g[1]}</span>`;
+    }).join('');
+
+    board.innerHTML = `
+      <div class="board">${panels}</div>
+      <div class="status" aria-live="polite">${statusText(L)}</div>
+      <div class="strip">${strip || '<span class="muted">Game 1 · best of ' + L.bestOf + ' · to ' + L.pointsTo + '</span>'}</div>
+      <div class="clock" id="clock">${fmtTime((L.finishedAt || Date.now()) - L.startedAt)}</div>
+      <div class="controls no-print">
+        <button data-act="undo" ${L.history.length ? '' : 'disabled'}>↶ Undo</button>
+        <button data-act="swap">⇄ Swap ends</button>
+        <button data-act="server" ${L.finished ? 'disabled' : ''}>🏓 Change server</button>
+        <button data-act="full">⛶ Fullscreen</button>
+        <button data-act="camera" ${L.finished ? 'disabled' : ''}>${cam.stream ? '📷 Camera on' : '📷 Auto score'}</button>
+        <button data-act="voice">${data.settings.voice ? '🔊 Voice on' : '🔈 Voice off'}</button>
+        ${L.finished ? '<button data-act="finish" class="primary">Save result</button>' : ''}
+        <button data-act="abandon" class="danger">✕ Abandon</button>
+      </div>`;
+  }
+  function statusText(L) {
+    if (L.finished) { const i = L.games[0] > L.games[1] ? 0 : 1; return `🏆 ${esc(L.p[i])} wins the match`; }
+    const [a, b] = L.score, pt = L.pointsTo, dl = pt - 1;
+    const n = need(L.bestOf);
+    if (a >= dl && b >= dl && a === b) return 'Deuce';
+    const lead = a > b ? 0 : b > a ? 1 : -1;
+    if (lead >= 0 && L.score[lead] >= dl) {
+      const name = esc(L.p[lead]);
+      return L.games[lead] === n - 1 ? `Match point · ${name}` : `Game point · ${name}`;
+    }
+    if (isDecider(L) && L.bestOf > 1) return 'Deciding game';
+    return '';
+  }
+
+  $('#board').addEventListener('click', e => {
+    const goto = e.target.closest('[data-goto]');
+    if (goto) { e.preventDefault(); showView(goto.dataset.goto); return; }
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.add) addPoint(Number(btn.dataset.add));
+    else if (btn.dataset.sub) removePoint(Number(btn.dataset.sub));
+    else if (btn.dataset.timeout) startTimeout(Number(btn.dataset.timeout));
+    else switch (btn.dataset.act) {
+      case 'undo': undo(); break;
+      case 'swap': swapEnds(); break;
+      case 'server': switchServer(); break;
+      case 'full': toggleFullscreen(); break;
+      case 'voice': data.settings.voice = !data.settings.voice; save(); renderBoard(); renderSettings(); break;
+      case 'finish': openFinish(); break;
+      case 'camera': cam.stream ? stopCamera() : startCamera(); break;
+      case 'abandon':
+        if (confirm('Abandon this match? The score will not be saved.')) { data.live = null; save(); renderAll(); $('#setup').open = true; }
+        break;
+    }
+  });
+  function toggleFullscreen() {
+    const el = $('#board-wrap');
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (el.requestFullscreen) el.requestFullscreen().catch(() => toast('Fullscreen is not available here'));
+  }
+  setInterval(() => {
+    const L = data.live, c = $('#clock');
+    if (L && c && !L.finished) c.textContent = fmtTime(Date.now() - L.startedAt);
+  }, 1000);
+
+  $('#setup-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const f = e.target;
+    startMatch(f.p1.value, f.p2.value, { bestOf: Number(f.bestOf.value), pointsTo: Number(f.pointsTo.value), first: f.first.value });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!$('#view-score').classList.contains('active') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest('input, select, textarea, dialog')) return;
+    const L = data.live;
+    if (!L) return;
+    const left = L.swapped ? 1 : 0;
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') addPoint(left);
+    else if (k === 'l' || k === 'arrowright') addPoint(1 - left);
+    else if (k === 'z' || k === 'backspace') undo();
+    else if (k === 's') swapEnds();
+    else if (k === 'f') toggleFullscreen();
+    else return;
+    e.preventDefault();
+  });
+
+  // ---------- Tournaments ----------
+  let selectedTid = null;
+
+  // Circle method: everyone meets everyone once; odd counts get a bye each round.
+  function roundRobin(names) {
+    let arr = names.slice();
+    if (arr.length % 2) arr.push(null);
+    const n = arr.length, rounds = [];
+    for (let r = 0; r < n - 1; r++) {
+      const pairs = [], byes = [];
+      for (let i = 0; i < n / 2; i++) {
+        const a = arr[i], b = arr[n - 1 - i];
+        if (a === null || b === null) byes.push(a === null ? b : a);
+        else pairs.push(r % 2 ? [b, a] : [a, b]);
+      }
+      rounds.push({ pairs, byes });
+      arr = [arr[0], arr[n - 1], ...arr.slice(1, n - 1)];
+    }
+    return rounds;
+  }
+
+  function createTournament({ name, players, format, bestOf, pointsTo }) {
+    const rounds = roundRobin(players);
+    const t = {
+      id: uid(), name, players, format, bestOf, pointsTo, created: Date.now(),
+      fixtures: [], byes: [], champion: null, runnerUp: null, third: null
+    };
+    rounds.forEach((r, k) => {
+      r.pairs.forEach(([a, b]) => t.fixtures.push({ id: uid(), stage: 'group', round: k + 1, a, b, games: [], winner: null }));
+      r.byes.forEach(p => t.byes.push({ round: k + 1, name: p }));
+    });
+    data.tournaments.unshift(t);
+    selectedTid = t.id;
+    save();
+    return t;
+  }
+
+  function standings(t) {
+    const rows = Object.fromEntries(t.players.map(p => [p, { name: p, P: 0, W: 0, L: 0, GF: 0, GA: 0, PF: 0, PA: 0, Pts: 0 }]));
+    const group = t.fixtures.filter(f => f.stage === 'group' && f.winner);
+    group.forEach(f => {
+      const A = rows[f.a], B = rows[f.b];
+      const [ga, gb] = gamesWon(f.games);
+      f.games.forEach(([x, y]) => { A.PF += x; A.PA += y; B.PF += y; B.PA += x; });
+      A.P++; B.P++; A.GF += ga; A.GA += gb; B.GF += gb; B.GA += ga;
+      const [W, Lo] = f.winner === f.a ? [A, B] : [B, A];
+      W.W++; W.Pts += 2; Lo.L++; Lo.Pts += 1;
+    });
+    const list = Object.values(rows);
+    const tiedCount = pts => list.filter(r => r.Pts === pts).length;
+    const h2h = (a, b) => {
+      if (tiedCount(a.Pts) !== 2) return 0;
+      const f = group.find(x => (x.a === a.name && x.b === b.name) || (x.a === b.name && x.b === a.name));
+      return f ? (f.winner === a.name ? -1 : 1) : 0;
+    };
+    return list.sort((a, b) =>
+      b.Pts - a.Pts || h2h(a, b) ||
+      (b.GF - b.GA) - (a.GF - a.GA) ||
+      (b.PF - b.PA) - (a.PF - a.PA) ||
+      a.name.localeCompare(b.name));
+  }
+
+  // Recomputes knockout fixtures, podium and the champion's Winners entry.
+  function progress(t) {
+    const group = t.fixtures.filter(f => f.stage === 'group');
+    const groupDone = group.every(f => f.winner);
+    if (!groupDone) {
+      dropKnockouts(t);
+    } else if (t.format !== 'rr' && !t.fixtures.some(f => f.stage === 'final')) {
+      const s = standings(t);
+      t.fixtures.push({ id: uid(), stage: 'final', round: 'F', a: s[0].name, b: s[1].name, games: [], winner: null });
+      if (t.format === 'final3' && s.length >= 4) t.fixtures.push({ id: uid(), stage: 'third', round: '3P', a: s[2].name, b: s[3].name, games: [], winner: null });
+    }
+    let champ = null, runner = null, third = null, done = false;
+    if (groupDone) {
+      const s = standings(t);
+      if (t.format === 'rr') {
+        [champ, runner, third] = [s[0].name, s[1].name, s[2] && s[2].name];
+        done = true;
+      } else {
+        const fin = t.fixtures.find(f => f.stage === 'final');
+        const tp = t.fixtures.find(f => f.stage === 'third');
+        if (fin && fin.winner) { champ = fin.winner; runner = fin.winner === fin.a ? fin.b : fin.a; }
+        third = tp ? tp.winner : (s[2] && s[2].name);
+        done = !!champ && (!tp || !!tp.winner);
+      }
+    }
+    t.champion = done ? champ : null;
+    t.runnerUp = done ? runner : null;
+    t.third = done ? third : null;
+    const had = data.winners.some(w => w.tournamentId === t.id);
+    data.winners = data.winners.filter(w => w.tournamentId !== t.id);
+    if (done) {
+      data.winners.unshift({ id: uid(), name: champ, title: `${t.name} champion`, date: today(), note: `Runner-up: ${runner}${third ? ` · 3rd: ${third}` : ''}`, source: 'tournament', tournamentId: t.id });
+      if (!had) { confetti(); toast(`🏆 ${champ} wins ${t.name}!`); }
+    }
+  }
+  function dropKnockouts(t) {
+    const ko = t.fixtures.filter(f => f.stage !== 'group').map(f => f.id);
+    t.fixtures = t.fixtures.filter(f => f.stage === 'group');
+    data.matches = data.matches.filter(m => !ko.includes(m.fixtureId));
+  }
+
+  function setFixtureResult(t, f, games, duration) {
+    if (f.stage === 'group' && t.fixtures.some(x => x.stage !== 'group')) dropKnockouts(t);
+    f.games = games;
+    f.winner = gamesWon(games)[0] > gamesWon(games)[1] ? f.a : f.b;
+    data.matches = data.matches.filter(m => m.fixtureId !== f.id);
+    data.matches.unshift({
+      id: uid(), p1: f.a, p2: f.b, games, winner: f.winner, bestOf: t.bestOf, pointsTo: t.pointsTo,
+      date: Date.now(), duration: duration || null, tournamentId: t.id, fixtureId: f.id
+    });
+    progress(t);
+    save();
+  }
+
+  function stageLabel(f) {
+    return f.stage === 'final' ? 'Final' : f.stage === 'third' ? '3rd place match' : `Round ${f.round}`;
+  }
+  const formatLabel = { rr: 'Round robin', final: 'Round robin + Final', final3: 'Round robin + Final + 3rd place' };
+
+  function renderTournamentNames() {
+    const form = $('#t-form');
+    const count = Number(form.count.value);
+    const box = $('#t-names');
+    const old = $$('input', box).map(i => i.value);
+    box.innerHTML = Array.from({ length: count }, (_, k) =>
+      `<label class="field">Player ${k + 1}<input list="roster" maxlength="30" required value="${esc(old[k] || '')}"></label>`).join('');
+    const opt3 = form.format.querySelector('[value="final3"]');
+    opt3.disabled = count < 4;
+    if (count < 4 && form.format.value === 'final3') form.format.value = 'final';
+  }
+  $('#t-form').count.addEventListener('change', renderTournamentNames);
+  $('#t-shuffle').onclick = () => {
+    const inputs = $$('#t-names input');
+    const vals = inputs.map(i => i.value);
+    for (let i = vals.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [vals[i], vals[j]] = [vals[j], vals[i]]; }
+    inputs.forEach((inp, k) => inp.value = vals[k]);
+  };
+  $('#t-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const f = e.target;
+    const raw = $$('#t-names input').map(i => i.value.trim()).filter(Boolean);
+    const lower = raw.map(n => n.toLowerCase());
+    if (raw.length !== Number(f.count.value)) return toast('Fill in every player name');
+    if (new Set(lower).size !== lower.length) return toast('Each player name must be different');
+    const players = raw.map(canonical);
+    createTournament({ name: f.name.value.trim(), players, format: f.format.value, bestOf: Number(f.bestOf.value), pointsTo: Number(f.pointsTo.value) });
+    f.name.value = '';
+    $$('#t-names input').forEach(i => i.value = '');
+    renderAll();
+    $('#t-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Tournament created');
+  });
+
+  function renderTournaments() {
+    const list = $('#t-list');
+    if (!data.tournaments.length) {
+      list.innerHTML = '<div class="card empty small">No tournaments yet.</div>';
+      $('#t-detail').innerHTML = '';
+      return;
+    }
+    if (!data.tournaments.some(t => t.id === selectedTid)) selectedTid = data.tournaments[0].id;
+    list.innerHTML = data.tournaments.map(t => {
+      const played = t.fixtures.filter(f => f.winner).length;
+      return `<button class="t-item ${t.id === selectedTid ? 'active' : ''}" data-tid="${t.id}">
+        <strong>${esc(t.name)}</strong>
+        <span class="small muted">${t.players.length} players · ${played}/${t.fixtures.length} played</span>
+        ${t.champion ? `<span class="pill done">🏆 ${esc(t.champion)}</span>` : '<span class="pill live">In progress</span>'}
+      </button>`;
+    }).join('');
+    renderTournamentDetail(data.tournaments.find(t => t.id === selectedTid));
+  }
+  $('#t-list').addEventListener('click', e => {
+    const b = e.target.closest('[data-tid]');
+    if (b) { selectedTid = b.dataset.tid; renderTournaments(); }
+  });
+
+  function fixtureRow(t, f, isNext) {
+    const res = f.winner
+      ? (() => { const [ga, gb] = gamesWon(f.games); return `<span class="small">${ga}–${gb} <span class="muted">(${gameList(f.games)})</span></span>`; })()
+      : '<span class="small muted">Not played</span>';
+    const nm = p => f.winner === p ? `<b>${esc(p)}</b>` : esc(p);
+    const liveHere = data.live && data.live.ctx && data.live.ctx.fid === f.id;
+    return `<div class="fixture ${isNext ? 'next' : ''}">
+      <div class="who">${nm(f.a)} <span class="muted">vs</span> ${nm(f.b)}<br>${res}</div>
+      <div class="row no-print">
+        ${f.winner ? '' : `<button data-play="${f.id}" class="${isNext ? 'primary' : ''}">${liveHere ? '▶ Resume' : '▶ Play live'}</button>`}
+        <button data-enter="${f.id}">${f.winner ? '✎ Edit' : 'Enter score'}</button>
+      </div>
+    </div>`;
+  }
+
+  function renderTournamentDetail(t) {
+    const el = $('#t-detail');
+    if (!t) { el.innerHTML = ''; return; }
+    const s = standings(t);
+    const played = t.fixtures.filter(f => f.winner).length;
+    const next = t.fixtures.find(f => !f.winner);
+    const qualifiers = t.format === 'rr' ? 0 : t.format === 'final3' ? 4 : 2;
+    const rounds = [...new Set(t.fixtures.filter(f => f.stage === 'group').map(f => f.round))];
+    const ko = t.fixtures.filter(f => f.stage !== 'group');
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="row">
+          <div><h2 style="margin:0">${esc(t.name)}</h2>
+          <div class="small muted">${formatLabel[t.format]} · best of ${t.bestOf} · games to ${t.pointsTo} · ${played}/${t.fixtures.length} matches played</div></div>
+          <span class="spacer"></span>
+          <div class="row no-print">
+            <button data-tact="copy">📋 Copy table</button>
+            <button data-tact="print">🖨 Print</button>
+            <button data-tact="delete" class="danger">Delete</button>
+          </div>
+        </div>
+        ${t.champion ? `
+          <div class="podium" style="margin-top:16px">
+            <div><span class="medal">🥇</span><strong>${esc(t.champion)}</strong><div class="small muted">Champion</div></div>
+            <div><span class="medal">🥈</span><strong>${esc(t.runnerUp)}</strong><div class="small muted">Runner-up</div></div>
+            ${t.third ? `<div><span class="medal">🥉</span><strong>${esc(t.third)}</strong><div class="small muted">Third</div></div>` : ''}
+          </div>` : ''}
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Standings</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Player</th><th class="num">P</th><th class="num">W</th><th class="num">L</th><th class="num">Games</th><th class="num">Pts diff</th><th class="num">Pts</th></tr></thead>
+          <tbody>${s.map((r, k) => `<tr class="${k < qualifiers && r.P ? 'hl' : ''}">
+            <td>${k + 1}</td><td>${esc(r.name)}${k < qualifiers && r.P ? ' <span class="pill">Q</span>' : ''}</td>
+            <td class="num">${r.P}</td><td class="num">${r.W}</td><td class="num">${r.L}</td>
+            <td class="num">${r.GF}:${r.GA}</td><td class="num">${r.PF - r.PA > 0 ? '+' : ''}${r.PF - r.PA}</td><td class="num"><strong>${r.Pts}</strong></td></tr>`).join('')}
+          </tbody></table></div>
+        ${qualifiers ? `<p class="small muted" style="margin-bottom:0">Top ${qualifiers} go to the ${qualifiers === 4 ? 'final and 3rd place match' : 'final'} once every group match is played.</p>` : ''}
+      </div>
+      ${ko.length ? `<div class="card"><h3 style="margin-top:0">Finals</h3>
+        ${ko.map(f => `<div class="small muted" style="margin-top:6px">${stageLabel(f)}</div>${fixtureRow(t, f, next && next.id === f.id)}`).join('')}</div>` : ''}
+      <div class="card">
+        <h3 style="margin-top:0">Fixtures</h3>
+        ${rounds.map(r => `
+          <div class="small muted" style="margin-top:10px">Round ${r}${t.byes.filter(b => b.round === r).map(b => ` · bye: ${esc(b.name)}`).join('')}</div>
+          ${t.fixtures.filter(f => f.stage === 'group' && f.round === r).map(f => fixtureRow(t, f, next && next.id === f.id)).join('')}`).join('')}
+      </div>`;
+  }
+
+  $('#t-detail').addEventListener('click', e => {
+    const t = data.tournaments.find(x => x.id === selectedTid);
+    const btn = e.target.closest('button');
+    if (!t || !btn) return;
+    if (btn.dataset.play) {
+      const f = t.fixtures.find(x => x.id === btn.dataset.play);
+      if (data.live && data.live.ctx && data.live.ctx.fid === f.id) { showView('score'); return; }
+      if (startMatch(f.a, f.b, { bestOf: t.bestOf, pointsTo: t.pointsTo, first: 'r', ctx: { tid: t.id, fid: f.id } })) showView('score');
+    } else if (btn.dataset.enter) {
+      const f = t.fixtures.find(x => x.id === btn.dataset.enter);
+      if (f.stage === 'group' && t.fixtures.some(x => x.stage !== 'group' && x.winner) &&
+          !confirm('Changing a group result resets the finals that were already played. Continue?')) return;
+      openResultDialog({
+        title: `${t.name} · ${stageLabel(f)}`, a: f.a, b: f.b, bestOf: t.bestOf, pointsTo: t.pointsTo, games: f.games,
+        onSave: (a, b, games) => { setFixtureResult(t, f, games); renderAll(); toast('Result saved'); }
+      });
+    } else if (btn.dataset.tact === 'delete') {
+      if (!confirm(`Delete "${t.name}" with all its results?`)) return;
+      data.tournaments = data.tournaments.filter(x => x.id !== t.id);
+      data.matches = data.matches.filter(m => m.tournamentId !== t.id);
+      data.winners = data.winners.filter(w => w.tournamentId !== t.id);
+      if (data.live && data.live.ctx && data.live.ctx.tid === t.id) data.live = null;
+      save(); renderAll();
+    } else if (btn.dataset.tact === 'print') {
+      window.print();
+    } else if (btn.dataset.tact === 'copy') {
+      const lines = [`${t.name} standings`, ...standings(t).map((r, k) => `${k + 1}. ${r.name}  W${r.W} L${r.L}  games ${r.GF}:${r.GA}  ${r.Pts} pts`)];
+      if (t.champion) lines.push(`Champion: ${t.champion}`);
+      copyText(lines.join('\n'));
+    }
+  });
+
+  function copyText(text) {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'), () => toast('Could not copy'));
+    else toast('Clipboard is not available');
+  }
+
+  // ---------- Result dialog (tournament fixtures and past matches) ----------
+  let resultCtx = null;
+  function openResultDialog(opts) {
+    resultCtx = opts;
+    $('#result-title').textContent = opts.title;
+    $('#result-error').textContent = '';
+    const names = $('#result-names');
+    if (opts.editable) {
+      names.innerHTML = `
+        <label class="field">Player 1<input id="r-a" list="roster" maxlength="30" required></label>
+        <label class="field">Player 2<input id="r-b" list="roster" maxlength="30" required></label>
+        <label class="field">Best of<select id="r-bo"><option>1</option><option>3</option><option>5</option><option>7</option></select></label>
+        <label class="field">Points per game<select id="r-pt"><option>11</option><option>15</option><option>21</option></select></label>`;
+      $('#r-bo').value = opts.bestOf; $('#r-pt').value = opts.pointsTo;
+      $('#r-bo').onchange = () => buildRows(Number($('#r-bo').value), []);
+      $('#r-a').oninput = $('#r-b').oninput = updateHeaders;
+    } else names.innerHTML = '';
+    buildRows(opts.bestOf, opts.games || []);
+    $('#dlg-result').showModal();
+  }
+  function updateHeaders() {
+    const h = $$('#result-grid .hdr');
+    if (!h.length || !resultCtx.editable) return;
+    h[0].textContent = $('#r-a').value || 'Player 1';
+    h[1].textContent = $('#r-b').value || 'Player 2';
+  }
+  function buildRows(bestOf, games) {
+    const o = resultCtx;
+    let html = `<div></div><div class="hdr">${esc(o.a || 'Player 1')}</div><div class="hdr">${esc(o.b || 'Player 2')}</div>`;
+    for (let k = 0; k < bestOf; k++) {
+      const g = games[k] || ['', ''];
+      html += `<div class="small muted">Game ${k + 1}</div>
+        <input type="number" min="0" max="99" inputmode="numeric" data-g="${k}" data-s="0" value="${g[0]}" aria-label="Game ${k + 1} player 1">
+        <input type="number" min="0" max="99" inputmode="numeric" data-g="${k}" data-s="1" value="${g[1]}" aria-label="Game ${k + 1} player 2">`;
+    }
+    $('#result-grid').innerHTML = html;
+    updateHeaders();
+  }
+  $('#result-cancel').onclick = () => $('#dlg-result').close();
+  $('#result-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const o = resultCtx, err = $('#result-error');
+    let a = o.a, b = o.b, bestOf = o.bestOf, pointsTo = o.pointsTo;
+    if (o.editable) {
+      a = $('#r-a').value.trim(); b = $('#r-b').value.trim();
+      bestOf = Number($('#r-bo').value); pointsTo = Number($('#r-pt').value);
+      if (!a || !b) return err.textContent = 'Enter both player names.';
+      if (a.toLowerCase() === b.toLowerCase()) return err.textContent = 'Pick two different players.';
+    }
+    const games = [];
+    for (let k = 0; k < bestOf; k++) {
+      const x = $(`#result-grid [data-g="${k}"][data-s="0"]`).value, y = $(`#result-grid [data-g="${k}"][data-s="1"]`).value;
+      if (x === '' && y === '') continue;
+      if (x === '' || y === '') return err.textContent = `Game ${k + 1} needs both scores.`;
+      games.push([Number(x), Number(y)]);
+    }
+    const v = validateMatch(games, bestOf, pointsTo);
+    if (v.error) return err.textContent = v.error;
+    $('#dlg-result').close();
+    o.onSave(a, b, games, bestOf, pointsTo);
+  });
+
+  // ---------- Winners ----------
+  $('#w-form').date.value = today();
+  $('#w-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const f = e.target;
+    data.winners.unshift({ id: uid(), name: canonical(f.name.value), title: f.title.value.trim(), date: f.date.value, note: f.note.value.trim(), source: 'manual' });
+    save();
+    f.name.value = ''; f.title.value = ''; f.note.value = ''; f.date.value = today();
+    confetti();
+    renderAll();
+    toast('Winner added to the hall of fame');
+  });
+  $('#w-search').addEventListener('input', renderWinners);
+
+  function titleCounts() {
+    const c = {};
+    data.winners.filter(w => w.source !== 'match').forEach(w => c[w.name] = (c[w.name] || 0) + 1);
+    return c;
+  }
+  function renderWinners() {
+    const q = $('#w-search').value.trim().toLowerCase();
+    const list = data.winners
+      .filter(w => !q || `${w.name} ${w.title} ${w.note}`.toLowerCase().includes(q))
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const icon = { tournament: '🏆', manual: '🏅', match: '✅' };
+    $('#w-list').innerHTML = list.length ? list.map(w => `
+      <div class="winner">
+        <span class="trophy" aria-hidden="true">${icon[w.source] || '🏅'}</span>
+        <div class="info"><strong>${esc(w.name)}</strong>
+          <span class="small">${esc(w.title)}</span>
+          <div class="small muted">${esc(w.date ? fmtDate(w.date + 'T12:00') : '')}${w.note ? ' · ' + esc(w.note) : ''}</div></div>
+        ${w.source === 'tournament' ? '<span class="pill">auto</span>' : `<button class="icon danger" data-wdel="${w.id}" aria-label="Remove">✕</button>`}
+      </div>`).join('') : '<div class="empty">No winners yet. Finish a tournament or add one above.</div>';
+
+    const counts = Object.entries(titleCounts()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const medals = ['🥇', '🥈', '🥉'];
+    $('#w-titles').innerHTML = counts.length ? `<div class="podium">${counts.slice(0, 5).map(([n, c], k) =>
+      `<div><span class="medal">${medals[k] || '🎖️'}</span><strong>${esc(n)}</strong><div class="small muted">${c} title${c > 1 ? 's' : ''}</div></div>`).join('')}</div>`
+      : '<div class="empty small">Titles show up here once you add winners.</div>';
+  }
+  $('#w-list').addEventListener('click', e => {
+    const b = e.target.closest('[data-wdel]');
+    if (!b || !confirm('Remove this winner?')) return;
+    data.winners = data.winners.filter(w => w.id !== b.dataset.wdel);
+    save(); renderAll();
+  });
+
+  // ---------- Leaderboard, head to head, history ----------
+  function computeLeaderboard() {
+    const rows = {};
+    const row = n => rows[n] || (rows[n] = { name: n, P: 0, W: 0, L: 0, GF: 0, GA: 0, PF: 0, PA: 0, form: [] });
+    data.players.forEach(row);
+    [...data.matches].sort((a, b) => a.date - b.date).forEach(m => {
+      const [ga, gb] = gamesWon(m.games);
+      const A = row(m.p1), B = row(m.p2);
+      m.games.forEach(([x, y]) => { A.PF += x; A.PA += y; B.PF += y; B.PA += x; });
+      A.P++; B.P++; A.GF += ga; A.GA += gb; B.GF += gb; B.GA += ga;
+      const aWon = m.winner === m.p1;
+      (aWon ? A : B).W++; (aWon ? B : A).L++;
+      A.form.push(aWon ? 'W' : 'L'); B.form.push(aWon ? 'L' : 'W');
+    });
+    const titles = titleCounts();
+    return Object.values(rows).map(r => {
+      let streak = '';
+      if (r.form.length) {
+        const last = r.form[r.form.length - 1];
+        let n = 0;
+        for (let i = r.form.length - 1; i >= 0 && r.form[i] === last; i--) n++;
+        streak = `${last}${n}`;
+      }
+      return { ...r, pct: r.P ? r.W / r.P : 0, streak, titles: titles[r.name] || 0 };
+    }).sort((a, b) => b.W - a.W || b.pct - a.pct || (b.GF - b.GA) - (a.GF - a.GA) || a.name.localeCompare(b.name));
+  }
+  function renderStats() {
+    const lb = computeLeaderboard();
+    $('#leaderboard').innerHTML = lb.length ? `<table>
+      <thead><tr><th>#</th><th>Player</th><th class="num">Played</th><th class="num">Won</th><th class="num">Lost</th><th class="num">Win %</th><th class="num">Games</th><th class="num">Pts diff</th><th class="num">Streak</th><th class="num">Titles</th><th>Last 5</th></tr></thead>
+      <tbody>${lb.map((r, k) => `<tr>
+        <td>${k + 1}</td><td><strong>${esc(r.name)}</strong></td>
+        <td class="num">${r.P}</td><td class="num">${r.W}</td><td class="num">${r.L}</td>
+        <td class="num">${r.P ? Math.round(r.pct * 100) + '%' : '–'}</td>
+        <td class="num">${r.GF}:${r.GA}</td><td class="num">${r.PF - r.PA > 0 ? '+' : ''}${r.PF - r.PA}</td>
+        <td class="num">${r.streak || '–'}</td><td class="num">${r.titles ? '🏆 ' + r.titles : '–'}</td>
+        <td>${r.form.slice(-5).map(x => `<span style="color:var(${x === 'W' ? '--ok' : '--danger'});font-weight:700">${x}</span>`).join(' ') || '<span class="muted">–</span>'}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty">Play a match to start the leaderboard.</div>';
+
+    // Head to head selectors
+    const names = lb.map(r => r.name);
+    ['#h2h-a', '#h2h-b'].forEach((sel, k) => {
+      const el = $(sel), prev = el.value;
+      el.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+      if (names.includes(prev)) el.value = prev; else if (names[k]) el.value = names[k];
+    });
+    renderH2H();
+
+    // History
+    const q = $('#m-search').value.trim().toLowerCase();
+    const ms = data.matches.filter(m => !q || `${m.p1} ${m.p2}`.toLowerCase().includes(q));
+    $('#history').innerHTML = ms.length ? `<table>
+      <thead><tr><th>Date</th><th>Match</th><th>Result</th><th>Event</th><th></th></tr></thead>
+      <tbody>${ms.map(m => {
+        const t = m.tournamentId && data.tournaments.find(x => x.id === m.tournamentId);
+        const f = t && t.fixtures.find(x => x.id === m.fixtureId);
+        const [ga, gb] = gamesWon(m.games);
+        const nm = p => m.winner === p ? `<strong>${esc(p)}</strong>` : esc(p);
+        return `<tr>
+          <td>${fmtDate(m.date)}</td>
+          <td>${nm(m.p1)} <span class="muted">vs</span> ${nm(m.p2)}</td>
+          <td>${ga}–${gb} <span class="muted small">(${gameList(m.games)})</span>${m.duration ? ` <span class="muted small">· ${fmtTime(m.duration)}</span>` : ''}</td>
+          <td class="small">${t ? `${esc(t.name)} · ${esc(f ? stageLabel(f) : '')}` : '<span class="muted">Friendly</span>'}</td>
+          <td class="row" style="flex-wrap:nowrap">
+            <button class="icon" data-mcopy="${m.id}" aria-label="Copy result">📋</button>
+            ${t ? '' : `<button class="icon danger" data-mdel="${m.id}" aria-label="Delete match">✕</button>`}
+          </td></tr>`;
+      }).join('')}</tbody></table>` : '<div class="empty">No matches yet.</div>';
+  }
+  function renderH2H() {
+    const a = $('#h2h-a').value, b = $('#h2h-b').value, out = $('#h2h-out');
+    if (!a || !b || a === b) { out.innerHTML = '<div class="muted small">Pick two different players.</div>'; return; }
+    const ms = data.matches.filter(m => (m.p1 === a && m.p2 === b) || (m.p1 === b && m.p2 === a));
+    if (!ms.length) { out.innerHTML = `<div class="muted small">${esc(a)} and ${esc(b)} haven't played each other yet.</div>`; return; }
+    const wa = ms.filter(m => m.winner === a).length, wb = ms.length - wa;
+    out.innerHTML = `<div class="podium">
+      <div><strong style="font-size:32px;color:var(--p0)">${wa}</strong><div>${esc(a)}</div></div>
+      <div><strong style="font-size:32px;color:var(--p1)">${wb}</strong><div>${esc(b)}</div></div></div>
+      <ul class="small" style="margin-bottom:0">${ms.slice(0, 5).map(m => `<li>${fmtDate(m.date)}: ${esc(matchSummary(m))}</li>`).join('')}</ul>`;
+  }
+  $('#h2h-a').onchange = $('#h2h-b').onchange = renderH2H;
+  $('#m-search').addEventListener('input', renderStats);
+  $('#history').addEventListener('click', e => {
+    const c = e.target.closest('[data-mcopy]'), d = e.target.closest('[data-mdel]');
+    if (c) copyText(matchSummary(data.matches.find(m => m.id === c.dataset.mcopy)));
+    if (d && confirm('Delete this match from the history?')) {
+      data.matches = data.matches.filter(m => m.id !== d.dataset.mdel);
+      data.winners = data.winners.filter(w => w.matchId !== d.dataset.mdel);
+      save(); renderAll();
+    }
+  });
+  $('#m-add').onclick = () => openResultDialog({
+    title: 'Add a past match', editable: true, bestOf: data.settings.bestOf, pointsTo: data.settings.pointsTo, games: [],
+    onSave: (a, b, games, bestOf, pointsTo) => {
+      a = canonical(a); b = canonical(b);
+      const w = gamesWon(games);
+      const m = { id: uid(), p1: a, p2: b, games, winner: w[0] > w[1] ? a : b, bestOf, pointsTo, date: Date.now(), duration: null };
+      data.matches.unshift(m);
+      if (data.settings.autoWinners) data.winners.unshift({ id: uid(), name: m.winner, title: `Match vs ${m.winner === a ? b : a}`, date: today(), note: matchSummary(m), source: 'match', matchId: m.id });
+      save(); renderAll(); toast('Match added');
+    }
+  });
+
+  // ---------- Settings & players ----------
+  function applyTheme() {
+    const th = data.settings.theme;
+    if (th === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', th);
+  }
+  $('#theme-btn').onclick = () => {
+    const dark = getComputedStyle(document.documentElement).colorScheme.includes('dark');
+    data.settings.theme = dark ? 'light' : 'dark';
+    save(); applyTheme(); renderSettings();
+  };
+  function renderSettings() {
+    $$('[data-setting]').forEach(el => {
+      const v = data.settings[el.dataset.setting];
+      if (el.type === 'checkbox') el.checked = !!v; else el.value = String(v);
+    });
+    $('#pl-list').innerHTML = data.players.length ? data.players.map(p =>
+      `<span class="pill" style="font-size:14px;padding:4px 6px 4px 10px">${esc(p)} <button class="icon" style="padding:0 6px;border:none;background:none" data-pdel="${esc(p)}" aria-label="Remove ${esc(p)}">✕</button></span>`).join('')
+      : '<span class="muted small">Players are added automatically when they play.</span>';
+  }
+  $$('[data-setting]').forEach(el => el.addEventListener('change', () => {
+    const k = el.dataset.setting;
+    data.settings[k] = el.type === 'checkbox' ? el.checked : (k === 'theme' ? el.value : Number(el.value));
+    save(); applyTheme();
+    if (k === 'bestOf' || k === 'pointsTo') $('#setup-form')[k].value = data.settings[k];
+    renderBoard();
+  }));
+  $('#pl-form').addEventListener('submit', e => {
+    e.preventDefault();
+    canonical(e.target.name.value);
+    e.target.name.value = '';
+    save(); renderAll();
+  });
+  $('#pl-list').addEventListener('click', e => {
+    const b = e.target.closest('[data-pdel]');
+    if (!b) return;
+    // Removing a player only hides them from suggestions; their results stay in the history.
+    data.players = data.players.filter(p => p !== b.dataset.pdel);
+    save(); renderAll();
+  });
+  $('#export').onclick = () => {
+    const blob = new Blob([JSON.stringify({ ...data, live: null }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tt-scoreboard-${today()}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $('#import').onclick = () => $('#import-file').click();
+  $('#import-file').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const d = JSON.parse(await file.text());
+      if (!d || !Array.isArray(d.matches) || !Array.isArray(d.tournaments)) throw new Error('bad file');
+      if (!confirm('Replace your current data with this backup?')) return;
+      const def = defaults();
+      data = { ...def, ...d, live: null, settings: { ...def.settings, ...(d.settings || {}) } };
+      save(); applyTheme(); renderAll(); toast('Backup imported');
+    } catch (err) { toast('That file is not a TT Scoreboard backup'); }
+  });
+  $('#reset').onclick = () => {
+    if (!confirm('Delete all players, matches, tournaments and winners? This cannot be undone.')) return;
+    data = defaults();
+    save(); applyTheme(); renderAll();
+  };
+
+  // ---------- Camera auto scoring ----------
+  // Tracks pixels that are both ball-coloured and moving. When the ball has
+  // been gone for a moment after a rally, the side it was last seen on lost it.
+  const cam = { stream: null, raf: 0, prev: null, rallyStart: 0, lastSeen: 0, lastSide: null, hits: 0, pending: null, timer: 0 };
+  const CW = 160, CH = 90;
+  const work = document.createElement('canvas');
+  work.width = CW; work.height = CH;
+  const wctx = work.getContext('2d', { willReadFrequently: true });
+
+  async function startCamera() {
+    // Phones block the camera on pages opened from a file manager or Downloads (file:// or content://).
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return camHelp('This browser blocks the camera for files opened from Downloads.',
+        'Open the scoreboard from an https:// address (e.g. GitHub Pages), or on a computer open the file directly in Chrome.');
+    }
+    try {
+      cam.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false });
+    } catch (e) {
+      const why = {
+        NotAllowedError: ['Camera access was blocked.',
+          'Tap the icon left of the address bar → Permissions → Camera → Allow, then reload. If you opened the file from a Files/Downloads app, open it in Chrome instead (the built-in viewer has no camera), or use the https:// link.'],
+        NotFoundError: ['No camera was found on this device.', 'Plug in or enable a camera and try again.'],
+        NotReadableError: ['The camera is busy.', 'Close other apps or tabs using the camera (video calls, camera app) and try again.'],
+        OverconstrainedError: ['The camera does not support the requested mode.', 'Try again; the app will use any camera it finds.']
+      }[e.name] || ['The camera could not start.', e.message || 'Try reloading the page.'];
+      if (e.name === 'OverconstrainedError') {
+        try { cam.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); } catch (e2) { return camHelp(...why); }
+      } else return camHelp(...why);
+    }
+    const v = $('#cam-video');
+    v.srcObject = cam.stream;
+    $('#cam').hidden = false;
+    v.play().catch(() => {});
+    cam.prev = null; cam.rallyStart = 0;
+    camLoop();
+    renderBoard();
+  }
+  function camHelp(problem, fix) {
+    $('#cam-help-problem').textContent = problem;
+    $('#cam-help-fix').textContent = fix;
+    $('#dlg-cam').showModal();
+  }
+  function stopCamera() {
+    cancelAnimationFrame(cam.raf);
+    if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+    cam.stream = null;
+    cancelCall();
+    $('#cam-video').srcObject = null;
+    $('#cam').hidden = true;
+    renderBoard();
+  }
+  $('#cam-close').onclick = stopCamera;
+
+  function isBall(r, g, b) {
+    if ($('#cam-color').value === 'orange') return r > 170 && g > 60 && g < 175 && b < 110 && r - b > 100;
+    return r > 165 && g > 165 && b > 165 && Math.max(r, g, b) - Math.min(r, g, b) < 45;
+  }
+  function camLoop() {
+    cam.raf = requestAnimationFrame(camLoop);
+    const v = $('#cam-video');
+    if (v.readyState < 2) return;
+    wctx.drawImage(v, 0, 0, CW, CH);
+    const px = wctx.getImageData(0, 0, CW, CH).data;
+    const lum = new Uint8Array(CW * CH);
+    const thr = 64 - Number($('#cam-sens').value) * 5;
+    let sx = 0, sy = 0, n = 0;
+    for (let p = 0, i = 0; p < CW * CH; p++, i += 4) {
+      const r = px[i], g = px[i + 1], b = px[i + 2];
+      lum[p] = (r * 3 + g * 6 + b) / 10;
+      if (cam.prev && Math.abs(lum[p] - cam.prev[p]) > thr && isBall(r, g, b)) { sx += p % CW; sy += (p / CW) | 0; n++; }
+    }
+    cam.prev = lum;
+    // A ball is a small blob; a big moving white area is a person or a shirt.
+    const ball = n >= 2 && n < CW * CH * 0.015 ? { x: sx / n, y: sy / n } : null;
+    trackBall(ball, performance.now());
+    drawOverlay(ball);
+  }
+  function trackBall(ball, now) {
+    const L = data.live;
+    if (!L || L.finished || cam.pending || $('#dlg-timeout').open) { cam.rallyStart = 0; return; }
+    const netX = CW * Number($('#cam-net').value) / 100;
+    if (ball) {
+      if (!cam.rallyStart) { cam.rallyStart = now; cam.hits = 0; }
+      cam.lastSeen = now; cam.hits++;
+      cam.lastSide = ball.x < netX ? 0 : 1;
+    } else if (cam.rallyStart && now - cam.lastSeen > 1500) {
+      const long = cam.lastSeen - cam.rallyStart > 700 && cam.hits >= 6;
+      cam.rallyStart = 0;
+      if (long) callPoint(cam.lastSide);
+    }
+  }
+  function drawOverlay(ball) {
+    const c = $('#cam-canvas'), ctx = c.getContext('2d'), k = c.width / CW;
+    const netX = c.width * Number($('#cam-net').value) / 100;
+    ctx.clearRect(0, 0, c.width, c.height);
+    if (cam.rallyStart && cam.lastSide !== null) {
+      ctx.fillStyle = 'rgba(56,189,248,0.15)';
+      ctx.fillRect(cam.lastSide ? netX : 0, 0, cam.lastSide ? c.width - netX : netX, c.height);
+    }
+    ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeStyle = '#facc15';
+    ctx.beginPath(); ctx.moveTo(netX, 0); ctx.lineTo(netX, c.height); ctx.stroke();
+    const L = data.live;
+    if (L) {
+      const left = sideToPlayer(0);
+      ctx.setLineDash([]); ctx.fillStyle = '#fff'; ctx.font = 'bold 20px system-ui';
+      ctx.fillText(L.p[left], 12, 28);
+      const r = L.p[1 - left];
+      ctx.fillText(r, c.width - 12 - ctx.measureText(r).width, 28);
+    }
+    if (ball) {
+      ctx.setLineDash([]); ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(ball.x * k, ball.y * k, 14, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  // Camera side 0/1 → player index, following the on-screen panels.
+  function sideToPlayer(side) {
+    const L = data.live;
+    if ($('#cam-flip').checked) side = 1 - side;
+    const left = L.swapped ? 1 : 0;
+    return side === 0 ? left : 1 - left;
+  }
+  function callPoint(side) {
+    const L = data.live;
+    const winner = 1 - sideToPlayer(side);
+    cam.pending = { winner, left: 3 };
+    const tick = () => {
+      if (!cam.pending) return;
+      if (cam.pending.left <= 0) { const w = cam.pending.winner; cancelCall(); addPoint(w); return; }
+      $('#cam-banner').innerHTML = `Point to ${esc(L.p[cam.pending.winner])} in ${cam.pending.left}…
+        <button data-cam="other">Give to ${esc(L.p[1 - cam.pending.winner])}</button><button data-cam="cancel">Cancel</button>`;
+      cam.pending.left--;
+      cam.timer = setTimeout(tick, 1000);
+    };
+    beep(1200, 0.05);
+    tick();
+  }
+  function cancelCall() {
+    clearTimeout(cam.timer);
+    cam.pending = null;
+    $('#cam-banner').innerHTML = '';
+  }
+  $('#cam-banner').addEventListener('click', e => {
+    const b = e.target.closest('[data-cam]');
+    if (!b || !cam.pending) return;
+    const w = cam.pending.winner;
+    cancelCall();
+    if (b.dataset.cam === 'other') addPoint(1 - w);
+  });
+
+  // ---------- Navigation ----------
+  function showView(name) {
+    if (name !== 'score' && cam.stream) stopCamera();
+    $$('nav.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === name)));
+    $$('section.view').forEach(s => s.classList.toggle('active', s.id === `view-${name}`));
+    try { sessionStorage.setItem('tt-view', name); } catch (e) { /* ignore */ }
+    renderAll();
+  }
+  $$('nav.tabs button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+  function renderAll() {
+    $('#roster').innerHTML = data.players.map(p => `<option value="${esc(p)}">`).join('');
+    renderBoard();
+    renderTournaments();
+    renderWinners();
+    renderStats();
+    renderSettings();
+  }
+
+  // ---------- Init ----------
+  applyTheme();
+  $('#setup-form').bestOf.value = data.settings.bestOf;
+  $('#setup-form').pointsTo.value = data.settings.pointsTo;
+  if (data.live) $('#setup').open = false;
+  renderTournamentNames();
+  let startView = 'score';
+  try { startView = sessionStorage.getItem('tt-view') || 'score'; } catch (e) { /* ignore */ }
+  showView(startView);
+  if (data.live && data.live.finished) openFinish();
+})();
+</script>
+</body>
+</html>
