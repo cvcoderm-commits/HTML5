@@ -370,6 +370,14 @@
   <div class="row"><span class="spacer"></span><button id="timeout-end" class="primary">Resume play</button></div>
 </dialog>
 
+<dialog id="dlg-cam">
+  <h2>📷 Camera not available</h2>
+  <p><strong id="cam-help-problem"></strong></p>
+  <p id="cam-help-fix"></p>
+  <p class="small muted">You can still score by tapping the numbers or using the keyboard.</p>
+  <form method="dialog" class="row"><span class="spacer"></span><button class="primary">OK</button></form>
+</dialog>
+
 <div id="toast" role="status" aria-live="polite"></div>
 <canvas id="confetti"></canvas>
 
@@ -1337,17 +1345,37 @@
   const wctx = work.getContext('2d', { willReadFrequently: true });
 
   async function startCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast('Camera is not available in this browser');
+    // Phones block the camera on pages opened from a file manager or Downloads (file:// or content://).
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return camHelp('This browser blocks the camera for files opened from Downloads.',
+        'Open the scoreboard from an https:// address (e.g. GitHub Pages), or on a computer open the file directly in Chrome.');
+    }
     try {
       cam.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 360 } }, audio: false });
-    } catch (e) { return toast('Camera permission was denied'); }
+    } catch (e) {
+      const why = {
+        NotAllowedError: ['Camera access was blocked.',
+          'Tap the icon left of the address bar → Permissions → Camera → Allow, then reload. If you opened the file from a Files/Downloads app, open it in Chrome instead (the built-in viewer has no camera), or use the https:// link.'],
+        NotFoundError: ['No camera was found on this device.', 'Plug in or enable a camera and try again.'],
+        NotReadableError: ['The camera is busy.', 'Close other apps or tabs using the camera (video calls, camera app) and try again.'],
+        OverconstrainedError: ['The camera does not support the requested mode.', 'Try again; the app will use any camera it finds.']
+      }[e.name] || ['The camera could not start.', e.message || 'Try reloading the page.'];
+      if (e.name === 'OverconstrainedError') {
+        try { cam.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); } catch (e2) { return camHelp(...why); }
+      } else return camHelp(...why);
+    }
     const v = $('#cam-video');
     v.srcObject = cam.stream;
-    await v.play().catch(() => {});
     $('#cam').hidden = false;
+    v.play().catch(() => {});
     cam.prev = null; cam.rallyStart = 0;
     camLoop();
     renderBoard();
+  }
+  function camHelp(problem, fix) {
+    $('#cam-help-problem').textContent = problem;
+    $('#cam-help-fix').textContent = fix;
+    $('#dlg-cam').showModal();
   }
   function stopCamera() {
     cancelAnimationFrame(cam.raf);
