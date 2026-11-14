@@ -26,6 +26,7 @@ A collection of games, apps and UI experiments built with plain HTML, CSS and Ja
 | [Business Card Creator](apps/business-card-creator.html) | Design an interactive business card |
 | [Calendar](apps/calendar/index.html) | Month-by-month calendar |
 | [Calculator](apps/calculator.html) | Everyday calculator |
+| [TT Tap Counter](apps/tt-tap-counter.html) | Listens through the mic and counts table tennis ball taps (racket juggle, table bounce, wall rally, custom) |
 
 ## 🧒 CodKid
 

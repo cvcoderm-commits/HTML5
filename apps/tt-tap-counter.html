@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a3157">
+<title>TT Tap Counter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone column. A table-top scoreboard (blue, white edge lines, centre line) on top, controls below, settings and history fold away. */
+:root{
+  --deep:#06213d;        /* floor around the table */
+  --table:#0a3157;       /* table-top blue */
+  --table-2:#0e3f6e;
+  --line:#f2f6fb;        /* white table lines */
+  --ball:#ff7a1a;        /* orange ball */
+  --ball-soft:rgba(255,122,26,.18);
+  --muted:#9bb4cf;
+  --panel:rgba(255,255,255,.06);
+  --panel-line:rgba(255,255,255,.12);
+  --good:#3ddc97;
+  --bad:#ff5d6c;
+  --f-num:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-text:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--deep);color:var(--line);font-family:var(--f-text);font-size:16px;line-height:1.4;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:560px;margin:0 auto;padding-block:12px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.ballmark{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd2ad,var(--ball) 55%,#c4520a);flex:none}
+h1{margin:0;font-family:var(--f-num);font-weight:700;font-size:24px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dot{width:9px;height:9px;border-radius:50%;background:#5a6f86}
+.dot.on{background:var(--good);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:live 1.6s infinite}
+.dot.pause{background:#f5c04a}
+@keyframes live{70%{box-shadow:0 0 0 8px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+
+/* modes */
+.modes{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-inline:-2px;padding-inline:2px}
+.modes::-webkit-scrollbar{display:none}
+.mode{flex:none;padding:9px 14px;border-radius:999px;background:var(--panel);border:1px solid var(--panel-line);font-weight:600;font-size:14px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.mode small{font-family:var(--f-num);font-size:13px;color:var(--muted);font-weight:600}
+.mode[aria-pressed="true"]{background:var(--ball);border-color:var(--ball);color:#1d0d00}
+.mode[aria-pressed="true"] small{color:#4a2300}
+.modehint{margin:-4px 0 0;color:var(--muted);font-size:14px}
+
+/* scoreboard = table top */
+.board{position:relative;border-radius:14px;background:linear-gradient(180deg,var(--table-2),var(--table));border:4px solid var(--line);overflow:hidden;padding:18px 14px 16px;text-align:center;user-select:none}
+.board::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(242,246,251,.35);transform:translateX(-1px)}
+.board::after{content:"";position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 0 0 0 var(--ball);transition:box-shadow .35s}
+.board.hit::after{box-shadow:inset 0 0 0 3px var(--ball-soft);transition:none}
+.board.count::after{box-shadow:inset 0 0 40px 6px rgba(255,122,26,.45);transition:none}
+.board > *{position:relative;z-index:1}
+.lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.big{font-family:var(--f-num);font-weight:700;font-size:clamp(110px,38vw,200px);line-height:.95;font-variant-numeric:tabular-nums;margin:2px 0 6px;transition:transform .12s}
+.big.pop{transform:scale(1.06)}
+.groups{display:flex;justify-content:center;gap:10px;min-height:22px;align-items:center}
+.g{width:18px;height:18px;border-radius:50%;border:2px solid rgba(242,246,251,.55)}
+.g.f{background:var(--ball);border-color:var(--ball)}
+.goalbar{height:6px;border-radius:3px;background:rgba(0,0,0,.25);margin:14px 6px 0;overflow:hidden}
+.goalbar i{display:block;height:100%;width:0;background:var(--line);transition:width .25s}
+.goaltxt{font-size:13px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 6px;text-align:center;min-width:0}
+.stat b{display:block;font-family:var(--f-num);font-size:28px;line-height:1.05;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* meter */
+.meter{display:flex;flex-direction:column;gap:6px}
+.meterrow{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.bar{position:relative;height:16px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid var(--panel-line);overflow:hidden}
+.bar .lvl{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#2f7fc4,#7ec3ff)}
+.bar .lvl.over{background:linear-gradient(90deg,#2f7fc4,var(--ball))}
+.bar .thr{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--line);border-radius:2px;left:50%}
+.bar .flr{position:absolute;top:0;bottom:0;width:2px;background:rgba(155,180,207,.6);left:0}
+
+/* controls */
+.controls{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px}
+.btn{min-height:56px;border-radius:12px;background:var(--panel);border:1px solid var(--panel-line);font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:translateY(1px)}
+.btn.main{background:var(--ball);border-color:var(--ball);color:#1d0d00;font-size:20px;font-family:var(--f-num);letter-spacing:.06em;text-transform:uppercase;min-height:64px}
+.btn.main.listening{background:var(--line);border-color:var(--line);color:var(--table)}
+.btn.num{font-family:var(--f-num);font-size:26px}
+.row2{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row2 .btn{min-height:46px;font-size:14px}
+.btn.danger.armed{background:var(--bad);border-color:var(--bad);color:#fff}
+
+.notice{border-radius:10px;padding:10px 12px;font-size:14px;background:rgba(255,93,108,.14);border:1px solid rgba(255,93,108,.45)}
+.notice.info{background:rgba(126,195,255,.1);border-color:rgba(126,195,255,.35)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);opacity:0;background:var(--line);color:var(--table);padding:10px 16px;border-radius:999px;font-weight:600;font-size:15px;transition:.25s;pointer-events:none;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* panels */
+details{background:var(--panel);border:1px solid var(--panel-line);border-radius:12px}
+summary{list-style:none;padding:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--f-num);font-size:22px;color:var(--muted)}
+details[open] summary::after{content:"–"}
+.pbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field .top{display:flex;justify-content:space-between;gap:10px;font-size:15px}
+.field .top output{font-family:var(--f-num);font-size:18px;color:var(--ball);font-variant-numeric:tabular-nums;white-space:nowrap}
+.field p{margin:0;font-size:13px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--ball);height:28px}
+select,input[type=number]{background:rgba(0,0,0,.3);color:var(--line);border:1px solid var(--panel-line);border-radius:8px;padding:8px 10px;font:inherit;width:100%}
+.inline{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px}
+.switch input{width:22px;height:22px;accent-color:var(--ball)}
+
+.hist{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.hist li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px;border-radius:8px;background:rgba(0,0,0,.2)}
+.hist .hn{font-family:var(--f-num);font-size:24px;grid-row:span 2;align-self:center;font-variant-numeric:tabular-nums}
+.hist .hm{font-weight:600;font-size:14px}
+.hist .hs{font-size:12px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.help{font-size:14px;color:var(--muted);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.help b{color:var(--line)}
+
+/* calibration overlay */
+.overlay{position:fixed;inset:0;background:rgba(3,18,34,.92);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.calcard{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.calcard h2{margin:0;font-family:var(--f-num);font-size:32px;text-transform:uppercase;letter-spacing:.04em}
+.calcard p{margin:0;color:var(--muted)}
+.calbig{font-family:var(--f-num);font-size:72px;line-height:1;color:var(--ball);font-variant-numeric:tabular-nums}
+.ring{width:110px;height:110px;border-radius:50%;border:4px solid var(--panel-line);display:flex;align-items:center;justify-content:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:380px){.stat b{font-size:24px}.stats{gap:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="ballmark" aria-hidden="true"></span><h1>TT Tap Counter</h1></div>
+    <div class="status"><span id="dot" class="dot"></span><span id="statusTxt">Mic off</span> · <span id="timer">00:00</span></div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <nav class="modes" id="modes" aria-label="Practice mode"></nav>
+  <p class="modehint" id="modeHint"></p>
+
+  <section class="board" id="board" aria-live="polite">
+    <div class="lbl">Total count</div>
+    <div class="big" id="big">0</div>
+    <div class="groups" id="groups" aria-label="Sounds heard in this count"></div>
+    <div class="goalbar"><i id="goalFill"></i></div>
+    <div class="goaltxt" id="goalTxt">Goal 100</div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b id="sRally">0</b><span>Rally</span></div>
+    <div class="stat"><b id="sBest">0</b><span>Best</span></div>
+    <div class="stat"><b id="sPace">0</b><span>Per min</span></div>
+    <div class="stat"><b id="sSounds">0</b><span>Sounds</span></div>
+  </div>
+
+  <div class="meter">
+    <div class="meterrow"><span>Mic level</span><span>white line = trigger level</span></div>
+    <div class="bar"><div class="lvl" id="lvl"></div><div class="flr" id="flr"></div><div class="thr" id="thr"></div></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn num" id="minus" aria-label="Subtract one">−1</button>
+    <button class="btn main" id="startBtn">Start</button>
+    <button class="btn num" id="plus" aria-label="Add one">+1</button>
+  </div>
+  <div class="row2">
+    <button class="btn" id="calBtn">Calibrate</button>
+    <button class="btn" id="saveBtn">Save session</button>
+    <button class="btn danger" id="resetBtn">Reset</button>
+  </div>
+
+  <details id="setPanel">
+    <summary>Settings</summary>
+    <div class="pbody">
+      <div class="field">
+        <div class="top"><label for="sens">Sensitivity</label><output id="sensOut"></output></div>
+        <input type="range" id="sens" min="0" max="100" step="1">
+        <p>Higher picks up softer hits. Lower it if talking or other tables get counted.</p>
+      </div>
+      <div class="field">
+        <div class="top"><label for="hp">Sound filter (ignore below)</label><output id="hpOut"></output></div>
+        <input type="range" id="hp" min="200" max="5000" step="50">
+        <p>A ping pong ball "tik" is a high sound, about 2000–6000 Hz. Low sounds such as voices, fans and footsteps fall below the filter.</p>
+      </div>
+      <div class="field">
+        <div class="top"><label for="gap">Min gap between sounds</label><output id="gapOut"></output></div>
+        <input type="range" id="gap" min="40" max="400" step="10">
+        <p>One hit can echo. Sounds closer than this are treated as a single sound.</p>
+      </div>
+      <div class="field">
+        <div class="top"><label for="tmo">Rally ends after silence of</label><output id="tmoOut"></output></div>
+        <input type="range" id="tmo" min="1" max="8" step="0.5">
+        <p>When the ball drops, the rally resets and any half-finished count is thrown away. Total keeps going.</p>
+      </div>
+      <div class="inline">
+        <div class="field">
+          <label for="custom">Custom: sounds per count</label>
+          <select id="custom"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+        </div>
+        <div class="field">
+          <label for="goal">Goal</label>
+          <input type="number" id="goal" min="0" max="100000" inputmode="numeric">
+        </div>
+      </div>
+      <div class="inline">
+        <div class="field">
+          <label for="voice">Speak count every</label>
+          <select id="voice"><option value="0">Off</option><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>
+        </div>
+        <div class="field">
+          <label for="lang">Voice language</label>
+          <select id="lang"><option value="hi-IN">Hindi</option><option value="en-IN">English</option></select>
+        </div>
+      </div>
+      <label class="switch" for="awake">Keep screen on while listening <input type="checkbox" id="awake"></label>
+      <button class="btn" id="defaultsBtn">Restore default settings</button>
+    </div>
+  </details>
+
+  <details id="histPanel">
+    <summary>History</summary>
+    <div class="pbody">
+      <ul class="hist" id="hist"></ul>
+      <button class="btn danger" id="clearHist">Clear history</button>
+    </div>
+  </details>
+
+  <details>
+    <summary>How to use</summary>
+    <div class="pbody">
+      <ol class="help">
+        <li>Put the phone near you, <b>mic facing the table or wall</b>, 1–2 m away.</li>
+        <li>Pick a mode. <b>Wall Rally</b> = racket + table + wall, so 3 sounds make 1 count.</li>
+        <li>Tap <b>Calibrate</b> once: stay quiet for 2 seconds, then hit the ball 5 times. Sensitivity and filter set themselves.</li>
+        <li>Tap <b>Start</b> and play. Each sound fills one orange dot; when all dots fill, the count goes up by 1.</li>
+        <li>If the count drifts, use <b>+1 / −1</b>. Use <b>Save session</b> to keep it in History.</li>
+        <li>Mic needs permission. If it fails, open this page over https (for example GitHub Pages) or from Chrome directly.</li>
+      </ol>
+    </div>
+  </details>
+</div>
+
+<div class="overlay" id="cal" hidden>
+  <div class="calcard">
+    <h2 id="calTitle">Calibrate</h2>
+    <div class="ring"><div class="calbig" id="calBig">2</div></div>
+    <p id="calMsg">Stay quiet…</p>
+    <button class="btn" id="calCancel" style="min-width:160px">Cancel</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Detector core (runs in AudioWorklet, or main thread as fallback) ---------- */
+const CORE = `
+class TapCore {
+  constructor(post, sr){ this.post=post; this.sr=sr; this.thr=0.02; this.ratio=3; this.gap=0.09;
+    this.armed=false; this.last=-10; this.floor=0.002; this.fast=0.002; this.mMax=0; this.mN=0;
+    this.mEvery=Math.max(1,Math.round(sr/128/30)); }
+  cfg(d){ for (const k in d) this[k]=d[k]; }
+  block(ch, t){
+    let pk=0; for (let i=0;i<ch.length;i++){ const a=ch[i]<0?-ch[i]:ch[i]; if(a>pk) pk=a; }
+    const ref = this.floor>this.fast ? this.floor : this.fast;
+    if (this.armed && pk>=this.thr && pk>=ref*this.ratio && t-this.last>=this.gap){
+      this.last=t; this.post({type:'hit', t, level:pk});
+    }
+    this.fast += (pk-this.fast)*0.3;
+    this.floor += (pk-this.floor)*(pk<this.floor?0.05:0.002);
+    if (pk>this.mMax) this.mMax=pk;
+    if (++this.mN>=this.mEvery){ this.post({type:'meter', peak:this.mMax, floor:this.floor}); this.mMax=0; this.mN=0; }
+  }
+}`;
+const WORKLET = CORE + `
+class TapProc extends AudioWorkletProcessor {
+  constructor(){ super(); this.c=new TapCore(m=>this.port.postMessage(m), sampleRate); this.port.onmessage=e=>this.c.cfg(e.data); }
+  process(inp){ const ch=inp[0]&&inp[0][0]; if(ch) this.c.block(ch, currentTime); return true; }
+}
+registerProcessor('tap-detector', TapProc);`;
+
+/* ---------- Modes & settings ---------- */
+const MODES = [
+  {id:'juggle', name:'Racket Juggle', per:1, hint:'Ball bouncing up and down on your racket. Every sound = 1 count.'},
+  {id:'bounce', name:'Table Bounce', per:2, hint:'Ball hits the table, then your racket. 2 sounds = 1 count.'},
+  {id:'wall',   name:'Wall Rally',   per:3, hint:'Racket → table → wall, table against the wall. 3 sounds = 1 count.'},
+  {id:'volley', name:'Wall Volley',  per:2, hint:'Racket → wall with no table bounce. 2 sounds = 1 count.'},
+  {id:'custom', name:'Custom',       per:0, hint:'Choose how many sounds make one count in Settings.'}
+];
+const DEFAULTS = {mode:'wall', sens:55, hp:1500, gap:90, tmo:3, custom:3, goal:100, voice:0, lang:'hi-IN', awake:true};
+const KEY='tt-tap-counter-v1', HKEY='tt-tap-counter-history-v1';
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const S = Object.assign({}, DEFAULTS, load(KEY, {}));
+let history = load(HKEY, []);
+if (!Array.isArray(history)) history = [];
+
+const sensToThr = s => Math.pow(10, -(0.5 + 2.5 * s / 100));          // 0 → 0.316, 100 → 0.001
+const thrToSens = t => Math.round(Math.min(100, Math.max(0, (-Math.log10(t) - 0.5) / 2.5 * 100)));
+const lvlToPct = l => Math.max(0, Math.min(100, (20 * Math.log10(Math.max(l, 1e-5)) + 60) / 60 * 100)); // -60..0 dB
+const per = () => { const m = MODES.find(x => x.id === S.mode) || MODES[2]; return m.per || +S.custom || 1; };
+
+/* ---------- State ---------- */
+const st = {count:0, rally:0, best:0, sounds:0, prog:0, activeMs:0, runStart:0, lastSound:0};
+let phase = 'idle'; // idle | listening | paused
+let ctx=null, stream=null, src=null, hpNode=null, analyser=null, node=null, post=()=>{}, wake=null;
+let muteUntil = 0, cal = null;
+
+/* ---------- DOM ---------- */
+const $ = id => document.getElementById(id);
+const els = {big:$('big'), groups:$('groups'), board:$('board'), rally:$('sRally'), best:$('sBest'), pace:$('sPace'),
+  sounds:$('sSounds'), lvl:$('lvl'), thr:$('thr'), flr:$('flr'), start:$('startBtn'), dot:$('dot'), status:$('statusTxt'),
+  timer:$('timer'), notice:$('notice'), goalFill:$('goalFill'), goalTxt:$('goalTxt'), hint:$('modeHint'), toast:$('toast')};
+
+function toast(msg){ els.toast.textContent = msg; els.toast.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => els.toast.classList.remove('show'), 1800); }
+function notice(msg, info){ els.notice.hidden = !msg; els.notice.textContent = msg || ''; els.notice.classList.toggle('info', !!info); }
+
+/* ---------- Mode chips ---------- */
+function renderModes(){
+  const nav = $('modes'); nav.textContent = '';
+  for (const m of MODES){
+    const b = document.createElement('button');
+    b.className = 'mode'; b.type = 'button'; b.setAttribute('aria-pressed', m.id === S.mode);
+    b.append(m.name);
+    const sm = document.createElement('small'); sm.textContent = (m.per || S.custom) + '→1'; b.append(sm);
+    b.onclick = () => { S.mode = m.id; st.prog = 0; persist(); renderModes(); render(); };
+    nav.append(b);
+  }
+  const m = MODES.find(x => x.id === S.mode);
+  els.hint.textContent = m ? m.hint : '';
+  const sel = nav.querySelector('[aria-pressed="true"]');
+  if (sel) nav.scrollLeft = sel.offsetLeft - nav.offsetLeft - (nav.clientWidth - sel.offsetWidth) / 2;
+}
+
+/* ---------- Render ---------- */
+const fmt = ms => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const activeMs = () => st.activeMs + (phase === 'listening' ? performance.now() - st.runStart : 0);
+function render(){
+  els.big.textContent = st.count;
+  els.rally.textContent = st.rally; els.best.textContent = st.best; els.sounds.textContent = st.sounds;
+  const n = per(); els.groups.textContent = '';
+  if (n > 1) for (let i = 0; i < n; i++){ const g = document.createElement('span'); g.className = 'g' + (i < st.prog ? ' f' : ''); els.groups.append(g); }
+  const goal = +S.goal || 0;
+  els.goalFill.style.width = goal ? Math.min(100, st.count / goal * 100) + '%' : '0';
+  els.goalTxt.textContent = goal ? (st.count >= goal ? `Goal ${goal} reached!` : `${goal - st.count} to goal ${goal}`) : 'No goal set';
+  els.start.textContent = phase === 'listening' ? 'Pause' : phase === 'paused' ? 'Resume' : 'Start';
+  els.start.classList.toggle('listening', phase === 'listening');
+  els.dot.className = 'dot' + (phase === 'listening' ? ' on' : phase === 'paused' ? ' pause' : '');
+  els.status.textContent = phase === 'listening' ? 'Listening' : phase === 'paused' ? 'Paused' : 'Mic off';
+  els.thr.style.left = lvlToPct(sensToThr(S.sens)) + '%';
+}
+function tick(){
+  const ms = activeMs();
+  els.timer.textContent = fmt(ms);
+  els.pace.textContent = ms > 5000 ? Math.round(st.count / (ms / 60000)) : 0;
+  if (phase === 'listening' && st.lastSound && performance.now() - st.lastSound > S.tmo * 1000 && (st.rally > 0 || st.prog > 0)) endRally();
+}
+setInterval(tick, 250);
+
+function flash(cls){ els.board.classList.remove(cls); void els.board.offsetWidth; els.board.classList.add(cls); clearTimeout(flash[cls]); flash[cls] = setTimeout(() => els.board.classList.remove(cls), 120); }
+
+/* ---------- Counting ---------- */
+function onSound(){
+  const now = performance.now();
+  if (now < muteUntil) return;
+  st.sounds++; st.lastSound = now; st.prog++;
+  flash('hit');
+  if (st.prog >= per()){ st.prog = 0; addCount(1); } else render();
+}
+function addCount(d){
+  const before = st.count;
+  st.count = Math.max(0, st.count + d);
+  st.rally = Math.max(0, st.rally + d);
+  if (st.rally > st.best) st.best = st.rally;
+  if (d > 0){ flash('count'); els.big.classList.add('pop'); setTimeout(() => els.big.classList.remove('pop'), 110); }
+  render();
+  if (d > 0){
+    const goal = +S.goal || 0;
+    if (goal && before < goal && st.count >= goal){ toast(`Goal ${goal} reached!`); speak(S.lang === 'hi-IN' ? `${goal} पूरे! शाबाश` : `Goal ${goal} reached. Well done`); try { navigator.vibrate && navigator.vibrate([80, 60, 80]); } catch {} }
+    else if (+S.voice && st.count % +S.voice === 0) speak(String(st.count));
+  }
+}
+function endRally(){
+  if (st.rally > 1) toast(`Rally over: ${st.rally}`);
+  st.rally = 0; st.prog = 0; st.lastSound = 0; render();
+}
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text); u.lang = S.lang; u.rate = 1.1;
+    muteUntil = performance.now() + 4000;               // ignore the phone's own voice
+    u.onend = u.onerror = () => { muteUntil = performance.now() + 350; };
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch {}
+}
+
+/* ---------- Audio ---------- */
+function detCfg(){ post({thr: sensToThr(S.sens), gap: S.gap / 1000, armed: phase === 'listening' || !!cal}); }
+async function openMic(){
+  if (!window.isSecureContext && location.protocol !== 'file:') { notice('The microphone only works on https:// or a local file. Open this page from GitHub Pages or Chrome directly.'); return false; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notice('This browser cannot use the microphone. Try Chrome or Safari, opened over https.'); return false; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
+  } catch (e){
+    notice(e && e.name === 'NotAllowedError' ? 'Microphone permission was blocked. Allow the mic for this page in browser settings, then tap Start again.' : 'Could not open the microphone: ' + (e && e.message || e));
+    return false;
+  }
+  notice('');
+  const AC = window.AudioContext || window.webkitAudioContext;
+  ctx = new AC({latencyHint:'interactive'});
+  try { await ctx.resume(); } catch {}
+  src = ctx.createMediaStreamSource(stream);
+  hpNode = ctx.createBiquadFilter(); hpNode.type = 'highpass'; hpNode.frequency.value = S.hp; hpNode.Q.value = 0.707;
+  analyser = ctx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0;
+  src.connect(analyser); src.connect(hpNode);
+  const sink = ctx.createGain(); sink.gain.value = 0; sink.connect(ctx.destination);
+  const onMsg = m => { if (m.type === 'hit') onHit(m); else if (m.type === 'meter') onMeter(m); };
+  try {
+    const url = URL.createObjectURL(new Blob([WORKLET], {type:'application/javascript'}));
+    await ctx.audioWorklet.addModule(url);
+    node = new AudioWorkletNode(ctx, 'tap-detector', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1]});
+    node.port.onmessage = e => onMsg(e.data);
+    post = d => node.port.postMessage(d);
+  } catch {
+    const Core = new Function(CORE + '; return TapCore;')();
+    const core = new Core(onMsg, ctx.sampleRate);
+    node = ctx.createScriptProcessor(1024, 1, 1);
+    node.onaudioprocess = e => { const d = e.inputBuffer.getChannelData(0); for (let i = 0; i < d.length; i += 128) core.block(d.subarray(i, i + 128), e.playbackTime + i / ctx.sampleRate); };
+    post = d => core.cfg(d);
+  }
+  hpNode.connect(node); node.connect(sink);
+  return true;
+}
+function closeMic(){
+  try { stream && stream.getTracks().forEach(t => t.stop()); } catch {}
+  try { ctx && ctx.close(); } catch {}
+  ctx = stream = src = hpNode = analyser = node = null; post = () => {};
+  els.lvl.style.width = '0';
+}
+function onHit(m){
+  if (cal){ cal.onHit(m); return; }
+  if (phase === 'listening') onSound();
+}
+let lastMeter = 0;
+function onMeter(m){
+  if (cal) cal.onMeter(m);
+  const now = performance.now(); if (now - lastMeter < 30) return; lastMeter = now;
+  els.lvl.style.width = lvlToPct(m.peak) + '%';
+  els.lvl.classList.toggle('over', m.peak >= sensToThr(S.sens));
+  els.flr.style.left = lvlToPct(m.floor) + '%';
+}
+async function setWake(on){
+  try {
+    if (on && S.awake && 'wakeLock' in navigator && !wake){ wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); }
+    if (!on && wake){ await wake.release(); wake = null; }
+  } catch { wake = null; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && phase === 'listening') { setWake(true); ctx && ctx.resume && ctx.resume(); } });
+
+async function toggle(){
+  if (phase === 'idle'){
+    els.start.disabled = true;
+    const ok = await openMic();
+    els.start.disabled = false;
+    if (!ok) return;
+    phase = 'listening'; st.runStart = performance.now(); st.lastSound = 0;
+  } else if (phase === 'listening'){
+    st.activeMs += performance.now() - st.runStart; phase = 'paused'; endRally();
+  } else {
+    phase = 'listening'; st.runStart = performance.now(); st.lastSound = 0;
+    try { await ctx.resume(); } catch {}
+  }
+  detCfg(); setWake(phase === 'listening'); render();
+}
+function stopAll(){
+  if (phase === 'listening') st.activeMs += performance.now() - st.runStart;
+  phase = 'idle'; closeMic(); setWake(false); render();
+}
+function resetCounts(){ Object.assign(st, {count:0, rally:0, best:0, sounds:0, prog:0, activeMs:0, lastSound:0}); st.runStart = performance.now(); render(); tick(); }
+
+/* ---------- Calibration ---------- */
+async function calibrate(){
+  if (!ctx){ const ok = await openMic(); if (!ok) return; }
+  const prevPhase = phase === 'idle' ? 'paused' : phase;
+  if (phase === 'listening'){ st.activeMs += performance.now() - st.runStart; }
+  phase = 'paused'; render();
+  const ov = $('cal'), title = $('calTitle'), big = $('calBig'), msg = $('calMsg');
+  ov.hidden = false;
+  const bins = new Float32Array(analyser.frequencyBinCount), spec = new Float32Array(analyser.frequencyBinCount);
+  const quiet = [], hits = [];
+  let done = false, timers = [];
+  hpNode.frequency.value = 300;
+  cal = { onMeter: m => { if (cal.stage === 'quiet') quiet.push(m.peak); }, onHit: () => {}, stage: 'quiet' };
+  post({armed:false});
+  title.textContent = 'Stay quiet'; msg.textContent = 'Measuring the room noise…'; big.textContent = '2';
+  const finish = (ok, text) => {
+    if (done) return; done = true; timers.forEach(clearTimeout);
+    cal = null; ov.hidden = true;
+    hpNode && (hpNode.frequency.value = S.hp);
+    phase = prevPhase; if (phase === 'listening') { st.runStart = performance.now(); st.lastSound = 0; }
+    detCfg(); render(); syncInputs(); if (text) toast(text);
+  };
+  $('calCancel').onclick = () => finish(false, 'Calibration cancelled');
+  timers.push(setTimeout(() => { if (!done) big.textContent = '1'; }, 1000));
+  timers.push(setTimeout(() => {
+    if (done) return;
+    quiet.sort((a, b) => a - b);
+    const noise = quiet.length ? quiet[Math.floor(quiet.length * 0.9)] : 0.003;
+    cal.stage = 'hits';
+    title.textContent = 'Hit the ball'; msg.textContent = 'Hit 5 times the way you will practise.'; big.textContent = '0';
+    cal.onHit = m => {
+      analyser.getFloatFrequencyData(bins);
+      for (let i = 0; i < bins.length; i++) spec[i] += Math.pow(10, bins[i] / 20);
+      hits.push(m.level); big.textContent = hits.length;
+      if (hits.length >= 5) timers.push(setTimeout(() => analyse(noise), 250));
+    };
+    post({thr: Math.max(noise * 2.5, 0.0015), gap: 0.12, armed: true});
+    timers.push(setTimeout(() => analyse(noise), 12000));
+  }, 2000));
+  const analyse = noise => {
+    if (done) return;
+    if (hits.length < 3){ finish(false, 'Not enough hits heard. Move the phone closer and try again.'); return; }
+    const sorted = hits.slice().sort((a, b) => a - b), med = sorted[Math.floor(sorted.length / 2)];
+    const thr = Math.max(noise * 3, med * 0.35, 0.001);
+    S.sens = thrToSens(thr);
+    const binHz = ctx.sampleRate / analyser.fftSize; let best = 0, bestF = 3000;
+    for (let i = Math.floor(700 / binHz); i < Math.min(spec.length, 10000 / binHz); i++) if (spec[i] > best){ best = spec[i]; bestF = i * binHz; }
+    S.hp = Math.min(4000, Math.max(300, Math.round(bestF * 0.5 / 50) * 50));
+    persist();
+    finish(true, `Calibrated: sensitivity ${S.sens}, filter ${S.hp} Hz`);
+  };
+}
+
+/* ---------- History ---------- */
+function renderHist(){
+  const ul = $('hist'); ul.textContent = '';
+  if (!history.length){ const p = document.createElement('p'); p.className = 'empty'; p.textContent = 'Saved sessions show up here.'; ul.append(p); return; }
+  for (const h of history.slice(0, 30)){
+    const li = document.createElement('li');
+    const n = document.createElement('span'); n.className = 'hn'; n.textContent = h.count;
+    const m = document.createElement('span'); m.className = 'hm'; m.textContent = `${h.mode} · best rally ${h.best}`;
+    const s = document.createElement('span'); s.className = 'hs';
+    s.textContent = `${new Date(h.at).toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})} · ${fmt(h.ms)} · ${h.ms > 5000 ? Math.round(h.count / (h.ms / 60000)) : 0}/min`;
+    li.append(n, m, s); ul.append(li);
+  }
+}
+function saveSession(){
+  const ms = activeMs();
+  if (!st.count){ toast('Nothing to save yet'); return; }
+  const m = MODES.find(x => x.id === S.mode);
+  history.unshift({at: Date.now(), mode: m ? m.name : S.mode, count: st.count, best: st.best, ms: Math.round(ms)});
+  history = history.slice(0, 100); save(HKEY, history); renderHist();
+  stopAll(); resetCounts(); toast('Session saved');
+}
+
+/* ---------- Settings UI ---------- */
+function persist(){ save(KEY, S); }
+function syncInputs(){
+  $('sens').value = S.sens; $('sensOut').textContent = S.sens;
+  $('hp').value = S.hp; $('hpOut').textContent = S.hp + ' Hz';
+  $('gap').value = S.gap; $('gapOut').textContent = S.gap + ' ms';
+  $('tmo').value = S.tmo; $('tmoOut').textContent = S.tmo + ' s';
+  $('custom').value = S.custom; $('goal').value = S.goal; $('voice').value = S.voice; $('lang').value = S.lang; $('awake').checked = !!S.awake;
+  render();
+}
+const bind = (id, key, num, after) => $(id).addEventListener('input', e => {
+  S[key] = e.target.type === 'checkbox' ? e.target.checked : num ? +e.target.value : e.target.value;
+  persist(); syncInputs(); after && after();
+});
+bind('sens', 'sens', true, detCfg);
+bind('hp', 'hp', true, () => { if (hpNode && !cal) hpNode.frequency.value = S.hp; });
+bind('gap', 'gap', true, detCfg);
+bind('tmo', 'tmo', true);
+bind('custom', 'custom', true, () => { st.prog = 0; renderModes(); render(); });
+bind('goal', 'goal', true);
+bind('voice', 'voice', true);
+bind('lang', 'lang', false);
+bind('awake', 'awake', false, () => setWake(phase === 'listening'));
+$('defaultsBtn').onclick = () => { const mode = S.mode; Object.assign(S, DEFAULTS, {mode}); persist(); syncInputs(); renderModes(); detCfg(); if (hpNode) hpNode.frequency.value = S.hp; toast('Default settings restored'); };
+
+/* ---------- Buttons ---------- */
+els.start.onclick = toggle;
+$('plus').onclick = () => { st.prog = 0; addCount(1); };
+$('minus').onclick = () => { st.prog = 0; addCount(-1); };
+$('saveBtn').onclick = saveSession;
+$('calBtn').onclick = calibrate;
+const armBtn = (btn, label, action) => {
+  btn.onclick = () => {
+    if (btn.classList.contains('armed')){ clearTimeout(btn.t); btn.classList.remove('armed'); btn.textContent = label; action(); return; }
+    btn.classList.add('armed'); btn.textContent = 'Tap again';
+    btn.t = setTimeout(() => { btn.classList.remove('armed'); btn.textContent = label; }, 2500);
+  };
+};
+armBtn($('resetBtn'), 'Reset', () => { resetCounts(); toast('Counter reset'); });
+armBtn($('clearHist'), 'Clear history', () => { history = []; save(HKEY, history); renderHist(); });
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,select,textarea')) return;
+  if (e.code === 'Space'){ e.preventDefault(); toggle(); }
+  else if (e.key === '+' || e.key === '=' || e.key === 'ArrowUp'){ st.prog = 0; addCount(1); }
+  else if (e.key === '-' || e.key === 'ArrowDown'){ st.prog = 0; addCount(-1); }
+});
+
+if (!window.isSecureContext && location.protocol !== 'file:') notice('Open this page over https:// (for example GitHub Pages) so the browser allows the microphone.', true);
+renderModes(); syncInputs(); renderHist(); tick();
+window.__tt = {st, S, onSound}; // handy for testing
+})();
+</script>
+</body>
+</html>
