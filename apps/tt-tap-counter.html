@@ -138,6 +138,45 @@ select,input[type=number]{background:rgba(0,0,0,.3);color:var(--line);border:1px
 .calcard p{margin:0;color:var(--muted)}
 .calbig{font-family:var(--f-num);font-size:72px;line-height:1;color:var(--ball);font-variant-numeric:tabular-nums}
 .ring{width:110px;height:110px;border-radius:50%;border:4px solid var(--panel-line);display:flex;align-items:center;justify-content:center}
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--panel-line)}
+.tabs button{min-height:42px;border-radius:9px;font-weight:600;font-size:15px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--table-2);color:var(--line);box-shadow:inset 0 -2px 0 var(--ball)}
+.tab{display:flex;flex-direction:column;gap:14px}
+/* coach */
+.coachline{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:10px 12px}
+.cav{flex:none;width:34px;height:34px;border-radius:50%;background:var(--line);color:var(--table);font-family:var(--f-num);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center}
+.cav.lg{width:56px;height:56px;font-size:28px}
+.coachline p{margin:0;font-size:15px;min-width:0}
+.coachline .who{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.coachcard{display:flex;gap:14px;align-items:center}
+.coachcard h2{margin:0;font-family:var(--f-num);font-size:26px;text-transform:uppercase;letter-spacing:.04em}
+.coachcard p{margin:2px 0 0;font-size:16px}
+.plan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plan li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid transparent}
+.plan li.now{border-color:var(--ball);background:var(--ball-soft)}
+.plan li.done{opacity:.55}
+.plan .pm{font-family:var(--f-num);font-size:18px;color:var(--muted);font-variant-numeric:tabular-nums}
+.plan .pt b{display:block;font-size:15px}
+.plan .pt span{font-size:13px;color:var(--muted)}
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.feed li{font-size:14px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.2)}
+.feed time{color:var(--muted);font-size:12px;margin-right:6px;font-variant-numeric:tabular-nums}
+h3{margin:4px 0 0;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+/* speed */
+.vbox{position:relative;border-radius:12px;overflow:hidden;background:#000;border:2px solid var(--line);aspect-ratio:4/3;max-width:100%}
+.vbox video{width:100%;height:100%;object-fit:contain;display:block}
+.vbox canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.vempty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--muted);font-size:15px;background:linear-gradient(180deg,var(--table-2),var(--table))}
+.vtag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);padding:4px 8px;border-radius:6px;font-size:12px;color:var(--line)}
+.speedbig{text-align:center}
+.speedbig b{display:block;font-family:var(--f-num);font-weight:700;font-size:clamp(72px,26vw,130px);line-height:.95;font-variant-numeric:tabular-nums;color:var(--line)}
+.speedbig span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stats.three{grid-template-columns:repeat(3,1fr)}
+.shots{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.shots li{font-family:var(--f-num);font-size:17px;padding:4px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--panel-line);font-variant-numeric:tabular-nums}
+.shots li.top{border-color:var(--ball);color:var(--ball)}
+.small{margin:0;font-size:13px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:380px){.stat b{font-size:24px}.stats{gap:6px}}
 </style>
@@ -151,6 +190,14 @@ select,input[type=number]{background:rgba(0,0,0,.3);color:var(--line);border:1px
 
   <div id="notice" class="notice" hidden></div>
 
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="count" aria-selected="true">Counter</button>
+    <button role="tab" data-tab="speed" aria-selected="false">Speed</button>
+    <button role="tab" data-tab="coach" aria-selected="false">Coach</button>
+  </nav>
+
+  <section class="tab" id="tab-count">
+
   <nav class="modes" id="modes" aria-label="Practice mode"></nav>
   <p class="modehint" id="modeHint"></p>
 
@@ -161,6 +208,8 @@ select,input[type=number]{background:rgba(0,0,0,.3);color:var(--line);border:1px
     <div class="goalbar"><i id="goalFill"></i></div>
     <div class="goaltxt" id="goalTxt">Goal 100</div>
   </section>
+
+  <div class="coachline"><span class="cav" aria-hidden="true">C</span><p><span class="who">Coach</span><span id="coachLine">Pick a mode and tap Start. I'll help you along the way.</span></p></div>
 
   <div class="stats">
     <div class="stat"><b id="sRally">0</b><span>Rally</span></div>
@@ -254,6 +303,65 @@ select,input[type=number]{background:rgba(0,0,0,.3);color:var(--line);border:1px
       </ol>
     </div>
   </details>
+  </section>
+
+  <section class="tab" id="tab-speed" hidden>
+    <div class="vbox" id="vbox">
+      <video id="vid" playsinline muted></video>
+      <canvas id="ov"></canvas>
+      <div class="vempty" id="vempty">Camera is off. Put the phone on a stand, side-on to the ball's path, then tap Camera on.</div>
+      <div class="vtag" id="vtag" hidden></div>
+    </div>
+    <div class="speedbig"><b id="spNow">0</b><span>km/h · last shot</span></div>
+    <div class="stats three">
+      <div class="stat"><b id="spTop">–</b><span>Top</span></div>
+      <div class="stat"><b id="spAvg">–</b><span>Average</span></div>
+      <div class="stat"><b id="spN">0</b><span>Shots</span></div>
+    </div>
+    <div class="row2">
+      <button class="btn" id="camBtn">Camera on</button>
+      <button class="btn" id="flipBtn">Flip camera</button>
+      <button class="btn" id="scaleBtn">Set scale</button>
+    </div>
+    <div class="inline">
+      <div class="field">
+        <label for="ballCol">Ball colour</label>
+        <select id="ballCol"><option value="orange">Orange</option><option value="white">White</option></select>
+      </div>
+      <div class="field">
+        <label for="scaleCm">Scale length (cm)</label>
+        <input type="number" id="scaleCm" min="5" max="1000" step="0.5" inputmode="decimal">
+      </div>
+    </div>
+    <p class="small" id="scaleInfo">Scale not set. Speeds are a rough estimate from the ball size.</p>
+    <h3>Recent shots (km/h)</h3>
+    <ul class="shots" id="shotList"><li>No shots yet</li></ul>
+    <button class="btn" id="spClear">Clear speeds</button>
+    <details>
+      <summary>How speed tracking works</summary>
+      <div class="pbody">
+        <ol class="help">
+          <li>The camera follows the moving ball by its colour and measures how far it travels between frames.</li>
+          <li>Place the phone <b>side-on</b> to the ball's flight, 2–3 m away, in good light. Speeds are only correct across the screen, not towards the camera.</li>
+          <li>For accurate km/h, tap <b>Set scale</b>, then tap both ends of something you can measure in the picture. The table's end line is <b>152.5 cm</b>, its side is <b>274 cm</b>.</li>
+          <li>An orange ball tracks best. With a white ball, avoid white walls and white clothes in the picture.</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+
+  <section class="tab" id="tab-coach" hidden>
+    <div class="coachcard"><span class="cav lg" aria-hidden="true">C</span><div><h2>Your coach</h2><p id="coachMain">Choose a plan and start. I'll switch drills, count the time and give you tips.</p></div></div>
+    <div class="field">
+      <label for="planSel">Training plan</label>
+      <select id="planSel"></select>
+    </div>
+    <button class="btn main" id="planBtn">Start coached session</button>
+    <ol class="plan" id="planSteps"></ol>
+    <label class="switch" for="coachVoice">Coach talks out loud <input type="checkbox" id="coachVoice"></label>
+    <h3>Coach notes</h3>
+    <ul class="feed" id="feed"></ul>
+  </section>
 </div>
 
 <div class="overlay" id="cal" hidden>
@@ -322,6 +430,8 @@ const st = {count:0, rally:0, best:0, sounds:0, prog:0, activeMs:0, runStart:0, 
 let phase = 'idle'; // idle | listening | paused
 let ctx=null, stream=null, src=null, hpNode=null, analyser=null, node=null, post=()=>{}, wake=null;
 let muteUntil = 0, cal = null;
+const hooks = {};
+st.times = [];
 
 /* ---------- DOM ---------- */
 const $ = id => document.getElementById(id);
@@ -333,6 +443,7 @@ function toast(msg){ els.toast.textContent = msg; els.toast.classList.add('show'
 function notice(msg, info){ els.notice.hidden = !msg; els.notice.textContent = msg || ''; els.notice.classList.toggle('info', !!info); }
 
 /* ---------- Mode chips ---------- */
+function setMode(id){ S.mode = id; st.prog = 0; persist(); renderModes(); render(); hooks.mode && hooks.mode(id); }
 function renderModes(){
   const nav = $('modes'); nav.textContent = '';
   for (const m of MODES){
@@ -340,7 +451,7 @@ function renderModes(){
     b.className = 'mode'; b.type = 'button'; b.setAttribute('aria-pressed', m.id === S.mode);
     b.append(m.name);
     const sm = document.createElement('small'); sm.textContent = (m.per || S.custom) + '→1'; b.append(sm);
-    b.onclick = () => { S.mode = m.id; st.prog = 0; persist(); renderModes(); render(); };
+    b.onclick = () => setMode(m.id);
     nav.append(b);
   }
   const m = MODES.find(x => x.id === S.mode);
@@ -382,7 +493,7 @@ function onSound(){
   if (now < muteUntil) return;
   st.sounds++; st.lastSound = now; st.prog++;
   flash('hit');
-  if (st.prog >= per()){ st.prog = 0; addCount(1); } else render();
+  if (st.prog >= per()){ st.prog = 0; st.times.push(now); if (st.times.length > 40) st.times.shift(); addCount(1); } else render();
 }
 function addCount(d){
   const before = st.count;
@@ -395,11 +506,14 @@ function addCount(d){
     const goal = +S.goal || 0;
     if (goal && before < goal && st.count >= goal){ toast(`Goal ${goal} reached!`); speak(S.lang === 'hi-IN' ? `${goal} पूरे! शाबाश` : `Goal ${goal} reached. Well done`); try { navigator.vibrate && navigator.vibrate([80, 60, 80]); } catch {} }
     else if (+S.voice && st.count % +S.voice === 0) speak(String(st.count));
+    hooks.count && hooks.count(st);
   }
 }
 function endRally(){
-  if (st.rally > 1) toast(`Rally over: ${st.rally}`);
-  st.rally = 0; st.prog = 0; st.lastSound = 0; render();
+  const r = st.rally;
+  if (r > 1) toast(`Rally over: ${r}`);
+  st.rally = 0; st.prog = 0; st.lastSound = 0; st.times = []; render();
+  hooks.rallyEnd && hooks.rallyEnd(r, st.best);
 }
 function speak(text){
   if (!('speechSynthesis' in window)) return;
@@ -488,6 +602,7 @@ async function toggle(){
     try { await ctx.resume(); } catch {}
   }
   detCfg(); setWake(phase === 'listening'); render();
+  hooks.phase && hooks.phase(phase);
 }
 function stopAll(){
   if (phase === 'listening') st.activeMs += performance.now() - st.runStart;
@@ -619,7 +734,321 @@ document.addEventListener('keydown', e => {
 
 if (!window.isSecureContext && location.protocol !== 'file:') notice('Open this page over https:// (for example GitHub Pages) so the browser allows the microphone.', true);
 renderModes(); syncInputs(); renderHist(); tick();
-window.__tt = {st, S, onSound}; // handy for testing
+window.__tt = window.TT = {st, S, onSound, speak, setMode, toggle, toast, hooks, MODES, setWake, phase: () => phase, activeMs, fmt};
+})();
+</script>
+<script>
+/* ================= Tabs ================= */
+(() => {
+  const tabs = document.querySelectorAll('.tabs [data-tab]');
+  const show = name => {
+    tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+    ['count', 'speed', 'coach'].forEach(n => { document.getElementById('tab-' + n).hidden = n !== name; });
+    try { localStorage.setItem('tt-tab', name); } catch {}
+    window.dispatchEvent(new CustomEvent('tt-tab', {detail: name}));
+  };
+  tabs.forEach(b => b.onclick = () => show(b.dataset.tab));
+  let t = 'count'; try { t = localStorage.getItem('tt-tab') || 'count'; } catch {}
+  show(['count', 'speed', 'coach'].includes(t) ? t : 'count');
+})();
+
+/* ================= Speed tracker (camera) =================
+   Finds the moving ball by colour + frame difference on a small copy of each frame,
+   follows it between frames and turns pixels/second into km/h using a scale. */
+function createSpeedTracker({video, canvas, onLive, onShot, onScale, onState}){
+  const W = 240; let H = 180;
+  const off = document.createElement('canvas'); const octx = off.getContext('2d', {willReadFrequently: true});
+  const ov = canvas.getContext('2d');
+  let stream = null, running = false, facing = 'environment', color = 'orange';
+  let prev = null, cur = null, last = null, seg = null, trail = [], det = null;
+  let mPerPx = null, autoM = null, scaleTaps = null, scaleCm = 152.5;
+  try { const v = JSON.parse(localStorage.getItem('tt-speed-scale')); if (v && v.m > 0) { mPerPx = v.m; scaleCm = v.cm || 152.5; } } catch {}
+
+  const isOrange = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    return mx > 110 && r === mx && r - g > 25 && g - b > 10 && (mx - mn) / mx > 0.55; };
+  const isWhite = (r, g, b) => r > 180 && g > 180 && b > 180 && Math.max(r, g, b) - Math.min(r, g, b) < 45;
+  const scale = () => mPerPx || autoM || 0.004;
+
+  async function start(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('This browser cannot use the camera. Open the page over https in Chrome or Safari.');
+    stream = await navigator.mediaDevices.getUserMedia({audio: false, video: {facingMode: {ideal: facing}, width: {ideal: 1280}, height: {ideal: 720}, frameRate: {ideal: 60}}});
+    video.srcObject = stream; await video.play();
+    H = Math.max(60, Math.round(W * (video.videoHeight || 720) / (video.videoWidth || 1280)));
+    off.width = W; off.height = H; prev = null; last = null; seg = null; trail = [];
+    canvas.parentElement.style.aspectRatio = (video.videoWidth || 4) + ' / ' + (video.videoHeight || 3);
+    running = true; schedule(); onState && onState(true, stream);
+  }
+  function stop(){
+    running = false;
+    try { stream && stream.getTracks().forEach(t => t.stop()); } catch {}
+    stream = null; video.srcObject = null; onState && onState(false);
+    ov.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  function schedule(){
+    if (!running) return;
+    if ('requestVideoFrameCallback' in video) video.requestVideoFrameCallback((now, md) => { frame(md && md.mediaTime ? md.mediaTime : now / 1000); schedule(); });
+    else requestAnimationFrame(now => { frame(now / 1000); schedule(); });
+  }
+  function frame(t){
+    if (!running || video.readyState < 2) return;
+    octx.drawImage(video, 0, 0, W, H);
+    const d = octx.getImageData(0, 0, W, H).data;
+    if (!cur || cur.length !== W * H) { cur = new Uint8Array(W * H); prev = null; }
+    let sx = 0, sy = 0, n = 0, x0 = W, x1 = 0, y0 = H, y1 = 0;
+    for (let y = 0, p = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, p++, i += 4){
+      const r = d[i], g = d[i + 1], b = d[i + 2], l = (r * 3 + g * 6 + b) / 10 | 0;
+      const moved = prev && Math.abs(l - prev[p]) > 26;
+      cur[p] = l;
+      if (moved && (color === 'orange' ? isOrange(r, g, b) : isWhite(r, g, b))){
+        sx += x; sy += y; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    const tmp = prev || new Uint8Array(W * H); prev = cur; cur = tmp;
+    det = null;
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+    if (n >= 2 && n < W * H * 0.02 && bw < W * 0.3 && bh < H * 0.3) {
+      det = {x: sx / n, y: sy / n, t, w: bw, h: bh};
+      const dia = Math.min(bw, bh);
+      if (dia >= 2) { const m = 0.04 / dia; autoM = autoM ? autoM * 0.9 + m * 0.1 : m; }
+    }
+    track(t);
+    draw();
+  }
+  function track(t){
+    if (det){
+      if (last && t - last.t > 0 && t - last.t < 0.15){
+        const dt = t - last.t, vx = (det.x - last.x) / dt, vy = (det.y - last.y) / dt;
+        const kmh = Math.hypot(vx, vy) * scale() * 3.6;
+        if (seg && vx * seg.vx + vy * seg.vy < 0) endSeg();      // direction flipped: a new shot
+        if (!seg) seg = {sp: [], vx, vy};
+        if (kmh < 200) { seg.sp.push(kmh); onLive && onLive(kmh); }
+        seg.vx = vx; seg.vy = vy;
+      }
+      last = det; trail.push(det); if (trail.length > 14) trail.shift();
+    } else if (last && t - last.t > 0.15){ endSeg(); last = null; }
+  }
+  function endSeg(){
+    if (seg && seg.sp.length >= 2){
+      const a = seg.sp.slice().sort((x, y) => x - y), v = a[Math.floor((a.length - 1) * 0.75)];
+      if (v >= 4) onShot && onShot(Math.round(v));
+    }
+    seg = null;
+  }
+  function geom(){
+    const cw = canvas.clientWidth, ch = canvas.clientHeight, vw = video.videoWidth || W, vh = video.videoHeight || H;
+    const k = Math.min(cw / vw, ch / vh), dw = vw * k, dh = vh * k;
+    return {cw, ch, ox: (cw - dw) / 2, oy: (ch - dh) / 2, sx: dw / W, sy: dh / H};
+  }
+  function draw(){
+    const dpr = window.devicePixelRatio || 1, g = geom();
+    if (canvas.width !== Math.round(g.cw * dpr)) { canvas.width = Math.round(g.cw * dpr); canvas.height = Math.round(g.ch * dpr); }
+    ov.setTransform(dpr, 0, 0, dpr, 0, 0); ov.clearRect(0, 0, g.cw, g.ch);
+    const P = q => [g.ox + q.x * g.sx, g.oy + q.y * g.sy];
+    ov.lineWidth = 3; ov.strokeStyle = 'rgba(255,122,26,.85)'; ov.beginPath();
+    trail.forEach((q, i) => { const [x, y] = P(q); i ? ov.lineTo(x, y) : ov.moveTo(x, y); }); ov.stroke();
+    if (det){ const [x, y] = P(det); ov.strokeStyle = '#f2f6fb'; ov.beginPath(); ov.arc(x, y, 12, 0, 7); ov.stroke(); }
+    if (scaleTaps){
+      ov.fillStyle = '#ff7a1a'; ov.strokeStyle = '#ff7a1a';
+      scaleTaps.forEach(q => { const [x, y] = P(q); ov.beginPath(); ov.arc(x, y, 7, 0, 7); ov.fill(); });
+      if (scaleTaps.length === 2){ const [a, b] = scaleTaps.map(P); ov.beginPath(); ov.moveTo(a[0], a[1]); ov.lineTo(b[0], b[1]); ov.stroke(); }
+    }
+  }
+  canvas.addEventListener('pointerdown', e => {
+    if (!scaleTaps) return;
+    const r = canvas.getBoundingClientRect(), g = geom();
+    scaleTaps.push({x: (e.clientX - r.left - g.ox) / g.sx, y: (e.clientY - r.top - g.oy) / g.sy});
+    draw();
+    if (scaleTaps.length === 2){
+      const px = Math.hypot(scaleTaps[0].x - scaleTaps[1].x, scaleTaps[0].y - scaleTaps[1].y);
+      if (px > 5) { mPerPx = scaleCm / 100 / px; try { localStorage.setItem('tt-speed-scale', JSON.stringify({m: mPerPx, cm: scaleCm})); } catch {} }
+      setTimeout(() => { scaleTaps = null; draw(); onScale && onScale(info()); }, 600);
+    }
+  });
+  function info(){
+    if (scaleTaps) return `Tap point ${scaleTaps.length + 1} of 2 on the picture (ends of a ${scaleCm} cm line).`;
+    return mPerPx ? `Scale set: ${scaleCm} cm line. Speeds are in real km/h.` : 'Scale not set. Speeds are a rough estimate from the ball size.';
+  }
+  return {
+    start, stop, isRunning: () => running, info,
+    flip: async () => { facing = facing === 'environment' ? 'user' : 'environment'; if (running) { stop(); await start(); } },
+    setColor: c => { color = c; },
+    setScaleCm: cm => { if (cm > 0) scaleCm = cm; },
+    scaleCm: () => scaleCm,
+    beginScale: () => { scaleTaps = []; draw(); onScale && onScale(info()); }
+  };
+}
+
+/* ================= Speed tab wiring ================= */
+(() => {
+  const TT = window.TT, $ = id => document.getElementById(id);
+  const shots = []; let liveT = 0;
+  const tracker = createSpeedTracker({
+    video: $('vid'), canvas: $('ov'),
+    onLive: kmh => { const now = performance.now(); if (now - liveT > 120) { liveT = now; $('vtag').hidden = false; $('vtag').textContent = Math.round(kmh) + ' km/h'; } },
+    onShot: kmh => { shots.unshift(kmh); if (shots.length > 200) shots.pop(); render(kmh); TT.hooks.shot && TT.hooks.shot(kmh, shots); },
+    onScale: txt => { $('scaleInfo').textContent = txt; },
+    onState: on => { $('vempty').hidden = on; $('vtag').hidden = !on; $('camBtn').textContent = on ? 'Camera off' : 'Camera on'; TT.setWake(on || TT.phase() === 'listening'); }
+  });
+  function render(last){
+    const top = shots.length ? Math.max(...shots) : 0, avg = shots.length ? Math.round(shots.reduce((a, b) => a + b, 0) / shots.length) : 0;
+    $('spNow').textContent = last != null ? last : (shots[0] ?? 0);
+    $('spTop').textContent = shots.length ? top : '–'; $('spAvg').textContent = shots.length ? avg : '–'; $('spN').textContent = shots.length;
+    const ul = $('shotList'); ul.textContent = '';
+    if (!shots.length) { const li = document.createElement('li'); li.textContent = 'No shots yet'; ul.append(li); return; }
+    shots.slice(0, 24).forEach(v => { const li = document.createElement('li'); li.textContent = v; if (v === top) li.className = 'top'; ul.append(li); });
+  }
+  $('camBtn').onclick = async () => {
+    if (tracker.isRunning()) { tracker.stop(); return; }
+    $('camBtn').disabled = true;
+    try { await tracker.start(); }
+    catch (e) { TT.toast(e && e.name === 'NotAllowedError' ? 'Camera blocked. Allow it in the browser settings.' : (e.message || 'Could not start the camera')); }
+    $('camBtn').disabled = false;
+  };
+  $('flipBtn').onclick = () => tracker.flip().catch(e => TT.toast(e.message || 'Could not switch camera'));
+  $('scaleBtn').onclick = () => { if (!tracker.isRunning()) { TT.toast('Turn the camera on first'); return; } tracker.beginScale(); };
+  $('ballCol').onchange = e => { tracker.setColor(e.target.value); try { localStorage.setItem('tt-ball', e.target.value); } catch {} };
+  $('scaleCm').oninput = e => { tracker.setScaleCm(+e.target.value); };
+  $('spClear').onclick = () => { shots.length = 0; render(null); };
+  try { const c = localStorage.getItem('tt-ball'); if (c) { $('ballCol').value = c; tracker.setColor(c); } } catch {}
+  $('scaleCm').value = tracker.scaleCm(); $('scaleInfo').textContent = tracker.info();
+  render(null);
+  TT.speed = {tracker, shots};
+})();
+
+/* ================= Virtual coach ================= */
+(() => {
+  const TT = window.TT, S = TT.S, $ = id => document.getElementById(id);
+  const hi = () => S.lang === 'hi-IN';
+  const L = (en, h) => hi() ? h : en;
+  const MODE_TIP = {
+    juggle: ['Keep the racket flat and the bounces low and soft. Eyes on the ball.', 'रैकेट सीधा रखो, बॉल को धीरे और कम ऊँचाई पर उछालो। नज़र बॉल पर।'],
+    bounce: ['Let the ball rise to its top before you hit. Same height every time.', 'बॉल को ऊपर आने दो, फिर मारो। हर बार एक जैसी ऊँचाई।'],
+    wall:   ["Stand an arm's length from the table, knees bent. Short, compact strokes.", 'टेबल से एक हाथ की दूरी पर खड़े रहो, घुटने मोड़ो। छोटे और कंट्रोल वाले शॉट।'],
+    volley: ['Racket in front of your body. Less wrist, more forearm.', 'रैकेट शरीर के सामने रखो। कलाई कम, फोरआर्म ज़्यादा।'],
+    custom: ['Relaxed grip, steady rhythm, eyes on the ball.', 'ग्रिप ढीली, रिदम एक जैसी, नज़र बॉल पर।']
+  };
+  const FIX = [
+    ['Watch the ball all the way onto the racket.', 'बॉल को रैकेट तक आते हुए पूरा देखो।'],
+    ['Relax your grip. A tight grip makes the ball fly off.', 'ग्रिप ढीली रखो। कसकर पकड़ने से बॉल उड़ जाती है।'],
+    ['Stay on your toes and move your feet, not only your arm.', 'पंजों पर रहो और पैर चलाओ, सिर्फ़ हाथ नहीं।'],
+    ['Slow down. Control first, speed later.', 'धीरे खेलो। पहले कंट्रोल, फिर स्पीड।'],
+    ['Keep the racket angle the same on every hit.', 'हर शॉट में रैकेट का एंगल एक जैसा रखो।']
+  ];
+  const PLANS = {
+    beginner: {name: 'Beginner · 10 min', steps: [
+      {mode: 'juggle', min: 2, t: ['Warm-up: soft bounces on the racket', 'वार्म-अप: रैकेट पर धीरे-धीरे उछालो']},
+      {mode: 'bounce', min: 3, t: ['Table bounce: same height every time', 'टेबल बाउंस: हर बार एक जैसी ऊँचाई']},
+      {mode: 'wall', min: 4, t: ['Wall rally: control, not power', 'वॉल रैली: ताकत नहीं, कंट्रोल']},
+      {mode: 'juggle', min: 1, t: ['Cool-down: easy bounces', 'कूल-डाउन: आराम से उछालो']}]},
+    rally: {name: 'Rally builder · 15 min', steps: [
+      {mode: 'juggle', min: 2, t: ['Warm-up on the racket', 'रैकेट पर वार्म-अप']},
+      {mode: 'wall', min: 5, t: ['Wall rally: beat your best rally', 'वॉल रैली: अपनी बेस्ट रैली तोड़ो']},
+      {mode: 'volley', min: 3, t: ['Wall volley: quick hands', 'वॉल वॉली: तेज़ हाथ']},
+      {mode: 'wall', min: 5, t: ['Longest-rally challenge', 'सबसे लंबी रैली का चैलेंज']}]},
+    power: {name: 'Speed & power · 12 min', steps: [
+      {mode: 'juggle', min: 2, t: ['Warm-up on the racket', 'रैकेट पर वार्म-अप']},
+      {mode: 'wall', min: 3, t: ['Control first, medium pace', 'पहले कंट्रोल, मीडियम स्पीड']},
+      {mode: 'wall', min: 4, t: ['Power: camera on in the Speed tab, hit harder, keep it on the table', 'पावर: Speed टैब में कैमरा चालू, ज़ोर से मारो, बॉल टेबल पर रहे']},
+      {mode: 'wall', min: 3, t: ['Mix: one soft, one hard', 'मिक्स: एक धीमा, एक तेज़']}]}
+  };
+  let voice = true; try { voice = localStorage.getItem('tt-coach-voice') !== '0'; } catch {}
+  let lastSpoke = 0, fixI = 0, lastRhythm = 0, greeted = false, topSpeed = 0, shotN = 0;
+  let plan = null; // {id, i, stepStart}
+
+  function say(en, h, opt = {}){
+    const text = L(en, h);
+    $('coachLine').textContent = text; $('coachMain').textContent = text;
+    const li = document.createElement('li'); const tm = document.createElement('time');
+    tm.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    li.append(tm, text); $('feed').prepend(li);
+    while ($('feed').children.length > 40) $('feed').lastChild.remove();
+    const now = performance.now();
+    if (voice && opt.speak !== false && (opt.force || now - lastSpoke > 7000)) { lastSpoke = now; TT.speak(text); }
+  }
+  const tip = id => MODE_TIP[id] || MODE_TIP.custom;
+
+  TT.hooks.phase = ph => {
+    if (ph !== 'listening') return;
+    if (!greeted) { greeted = true; const t = tip(S.mode); say('Let\'s go. ' + t[0], 'चलो शुरू करें। ' + t[1], {force: true}); }
+  };
+  TT.hooks.mode = id => { if (!plan) { const t = tip(id); say(t[0], t[1], {speak: false}); } };
+  TT.hooks.count = st => {
+    const r = st.rally;
+    if (r > 0 && r % 10 === 0) say(`${r} in a row. Keep it going!`, `लगातार ${r}! ऐसे ही चलते रहो।`);
+    if (r >= 6 && r % 3 === 0 && performance.now() - lastRhythm > 30000 && st.times.length >= 6){
+      const tt = st.times.slice(-6), iv = []; for (let i = 1; i < tt.length; i++) iv.push(tt[i] - tt[i - 1]);
+      const m = iv.reduce((a, b) => a + b, 0) / iv.length, sd = Math.sqrt(iv.reduce((a, b) => a + (b - m) ** 2, 0) / iv.length);
+      if (m > 0 && sd / m > 0.35){ lastRhythm = performance.now(); say('Your rhythm is uneven. Try to hit at a steady beat.', 'तुम्हारी रिदम ऊपर-नीचे हो रही है। एक जैसी टाइमिंग पर मारो।'); }
+    }
+  };
+  TT.hooks.rallyEnd = (r, best) => {
+    if (r <= 0) return;
+    if (r >= 5 && r >= best) say(`New best rally: ${r}! Great control.`, `नई बेस्ट रैली: ${r}! बहुत बढ़िया कंट्रोल।`, {force: true});
+    else if (r < 5){ const f = FIX[fixI++ % FIX.length]; say(`Rally ${r}. ${f[0]}`, `रैली ${r}। ${f[1]}`); }
+    else say(`Rally ${r}. Your best is ${best}. Go again.`, `रैली ${r}। तुम्हारा बेस्ट ${best} है। फिर से शुरू करो।`);
+  };
+  TT.hooks.shot = (kmh, shots) => {
+    shotN++;
+    if (kmh > topSpeed && shotN > 2){ topSpeed = kmh; say(`Fastest shot so far: ${kmh} km/h!`, `अब तक का सबसे तेज़ शॉट: ${kmh} किलोमीटर प्रति घंटा!`); return; }
+    topSpeed = Math.max(topSpeed, kmh);
+    if (shotN % 10 === 0){
+      const s = shots.slice(0, 10), avg = Math.round(s.reduce((a, b) => a + b, 0) / s.length), spread = Math.max(...s) - Math.min(...s);
+      if (spread > avg * 0.6) say(`Average ${avg} km/h, but the speeds jump around. Use the same swing each time.`, `औसत ${avg} किलोमीटर प्रति घंटा, पर स्पीड ऊपर-नीचे है। हर बार एक जैसा स्विंग करो।`);
+      else say(`Average ${avg} km/h and nicely even. Try a little more follow-through for power.`, `औसत ${avg} किलोमीटर प्रति घंटा, अच्छी एकरूपता। पावर के लिए फॉलो-थ्रू थोड़ा बढ़ाओ।`);
+    }
+  };
+
+  /* ---- plans ---- */
+  const sel = $('planSel');
+  Object.entries(PLANS).forEach(([id, p]) => { const o = document.createElement('option'); o.value = id; o.textContent = p.name; sel.append(o); });
+  function renderPlan(){
+    const p = PLANS[plan ? plan.id : sel.value], ol = $('planSteps'); ol.textContent = '';
+    const el = plan ? TT.activeMs() - plan.stepStart : 0;
+    p.steps.forEach((s, i) => {
+      const li = document.createElement('li');
+      if (plan) li.className = i < plan.i ? 'done' : i === plan.i ? 'now' : '';
+      const m = document.createElement('span'); m.className = 'pm';
+      m.textContent = plan && i === plan.i ? TT.fmt(Math.max(0, s.min * 60000 - el)) : s.min + ' min';
+      const t = document.createElement('span'); t.className = 'pt';
+      const b = document.createElement('b'); b.textContent = (TT.MODES.find(x => x.id === s.mode) || {}).name || s.mode;
+      const d = document.createElement('span'); d.textContent = L(s.t[0], s.t[1]);
+      t.append(b, d); li.append(document.createTextNode(String(i + 1)), t, m); ol.append(li);
+    });
+    $('planBtn').textContent = plan ? 'Stop coached session' : 'Start coached session';
+    sel.disabled = !!plan;
+  }
+  function goStep(i){
+    const p = PLANS[plan.id];
+    if (i >= p.steps.length){
+      const st = TT.st; plan = null;
+      say(`Session done! Total ${st.count}, best rally ${st.best}${topSpeed ? `, top speed ${topSpeed} km/h` : ''}. Well played.`,
+          `सेशन पूरा! कुल ${st.count}, बेस्ट रैली ${st.best}${topSpeed ? `, टॉप स्पीड ${topSpeed}` : ''}। बहुत अच्छा खेले।`, {force: true});
+      renderPlan(); return;
+    }
+    plan.i = i; plan.stepStart = TT.activeMs();
+    const s = p.steps[i]; TT.setMode(s.mode);
+    const mt = tip(s.mode);
+    say(`Step ${i + 1}: ${s.t[0]}, ${s.min} min. ${mt[0]}`, `स्टेप ${i + 1}: ${s.t[1]}, ${s.min} मिनट। ${mt[1]}`, {force: true});
+    renderPlan();
+  }
+  $('planBtn').onclick = async () => {
+    if (plan) { plan = null; say('Coached session stopped.', 'कोचिंग सेशन रोक दिया।', {speak: false}); renderPlan(); return; }
+    plan = {id: sel.value, i: 0, stepStart: 0}; greeted = true;
+    if (TT.phase() !== 'listening') await TT.toggle();
+    if (TT.phase() !== 'listening') { plan = null; renderPlan(); TT.toast('Allow the microphone to start the session'); return; }
+    goStep(0);
+  };
+  sel.onchange = renderPlan;
+  setInterval(() => {
+    if (!plan) return;
+    const s = PLANS[plan.id].steps[plan.i], el = TT.activeMs() - plan.stepStart;
+    if (TT.phase() === 'listening' && el >= s.min * 60000) goStep(plan.i + 1);
+    else if (TT.phase() === 'listening' && Math.abs(el - (s.min * 60000 - 30000)) < 500) say('30 seconds left in this drill.', 'इस ड्रिल में 30 सेकंड बाकी।');
+    renderPlan();
+  }, 1000);
+  $('coachVoice').checked = voice;
+  $('coachVoice').onchange = e => { voice = e.target.checked; try { localStorage.setItem('tt-coach-voice', voice ? '1' : '0'); } catch {} };
+  renderPlan();
 })();
 </script>
 </body>
